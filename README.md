@@ -3,7 +3,7 @@
 Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — test technique LEMDINT, réalisé avec un agent IA (Claude Code).
 Sujet et données : [`sujet/`](sujet/).
 
-> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Les fonctionnalités F1 à F4, Docker et les tests restent à faire. Les sections ci-dessous sont mises à jour au fil des commits.
+> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Docker (PostgreSQL + app + nginx) est opérationnel. Les fonctionnalités F1 à F4 et les tests restent à faire. Les sections ci-dessous sont mises à jour au fil des commits.
 
 ## Stack
 
@@ -13,8 +13,8 @@ Sujet et données : [`sujet/`](sujet/).
 | CMS | Payload CMS (headless) : utilisateurs et produits | [ADR-0004](docs/adr/0004-payload-cms-headless.md) |
 | Qualité | ESLint, **zéro `any`** | [ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md) |
 | Tests | Vitest (basiques) + Playwright (E2E, dossier `e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
-| Base de données | PostgreSQL | [ADR-0009](docs/adr/0009-postgresql-pour-payload.md) |
-| Infra | Docker + docker compose, nginx si nécessaire | [ADR-0008](docs/adr/0008-docker-et-nginx.md) |
+| Base de données | PostgreSQL (proche de Supabase : hébergé, open source et économique) | [ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md) |
+| Infra | Docker Compose (db + app + nginx reverse proxy, rate limiting) | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [ADR-0011](docs/adr/0011-architecture-docker-compose-et-nginx.md) |
 | Notifications | Telegram (API Bot) — à décider | à venir |
 
 ## Linter et règles de code
@@ -23,22 +23,33 @@ Sujet et données : [`sujet/`](sujet/).
 - `@typescript-eslint/no-explicit-any` et `ban-ts-comment` en **erreur** : pas de `any`, pas de `@ts-ignore`.
 - `npm run lint` et la compilation TypeScript doivent passer avant chaque commit.
 
-## Commandes
+## Lancement avec Docker (recommandé)
 
 ```bash
-cp .env.example .env     # puis renseigner les valeurs (jamais commité)
-npm install
-npm run dev              # http://localhost:3000 — admin Payload : /admin
-npm run lint             # ESLint
-npm run typecheck        # tsc --noEmit
-npm run build            # build de production
-npm run generate:types   # régénère src/payload-types.ts
+cp .env.example .env          # renseigner POSTGRES_PASSWORD et PAYLOAD_SECRET (openssl rand -hex 32)
+docker compose up -d --build
+# site : http://localhost:8080 — admin Payload : http://localhost:8080/admin
 ```
 
-Une base PostgreSQL est nécessaire (`DATABASE_URI`). En attendant `docker compose` :
-`docker run -d --name ym-pg -e POSTGRES_USER=yacinemotors -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=yacinemotors -p 5433:5432 postgres:17-alpine`.
+- `db` : PostgreSQL 17, volume persistant, publié sur `127.0.0.1:5433` en local uniquement (`docker-compose.override.yml`).
+- `app` : Next.js en mode `standalone`, utilisateur non-root ; les migrations Payload s'appliquent au démarrage.
+- `nginx` : seul service exposé ; en-têtes de sécurité, cache des statiques, limitation de débit (plus stricte sur `/api/`), config dans `docker/nginx/`.
+- Passer à Supabase ou un autre PostgreSQL managé = changer `DATABASE_URI` (voir ADR-0010).
 
-Commandes cibles (à venir) : `npm test` (Vitest), `npm run test:e2e` (Playwright), `docker compose up` (site complet).
+## Développement local (hors Docker)
+
+```bash
+docker compose up -d db       # base seule, sur 127.0.0.1:5433
+npm install
+npm run dev                   # http://localhost:3000 — admin : /admin
+npm run lint                  # ESLint
+npm run typecheck             # tsc --noEmit
+npm run build                 # build de production
+npm run generate:types        # régénère src/payload-types.ts
+npx payload migrate:create <nom>   # après un changement de schéma
+```
+
+Commandes cibles (à venir) : `npm test` (Vitest), `npm run test:e2e` (Playwright).
 
 ## Workflow de développement
 
