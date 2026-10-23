@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    vehicles: Vehicle;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,6 +77,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    vehicles: VehiclesSelect<false> | VehiclesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -85,8 +87,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    agency: Agency;
+  };
+  globalsSelect: {
+    agency: AgencySelect<false> | AgencySelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -143,6 +149,51 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vehicles".
+ */
+export interface Vehicle {
+  id: number;
+  slug: string;
+  sourceId?: number | null;
+  brand: string;
+  model: string;
+  version: string;
+  year: number;
+  category: 'Citadine' | 'Compacte' | 'SUV' | 'Sportive';
+  fuel: string;
+  gearbox: string;
+  powerHp: number;
+  drivetrain: string;
+  mileage: number;
+  seats: number;
+  doors: number;
+  color: string;
+  critAir: number;
+  pricePerDay: number;
+  deposit: number;
+  includedKmPerDay: number;
+  available?: boolean | null;
+  unavailableUntil?: string | null;
+  minimumAge?: number | null;
+  minimumLicenseYears?: number | null;
+  equipment?:
+    | {
+        name: string;
+        id?: string | null;
+      }[]
+    | null;
+  images?:
+    | {
+        path: string;
+        id?: string | null;
+      }[]
+    | null;
+  description: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -164,10 +215,15 @@ export interface PayloadKv {
  */
 export interface PayloadLockedDocument {
   id: number;
-  document?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
+  document?:
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null)
+    | ({
+        relationTo: 'vehicles';
+        value: number | Vehicle;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
@@ -235,6 +291,50 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vehicles_select".
+ */
+export interface VehiclesSelect<T extends boolean = true> {
+  slug?: T;
+  sourceId?: T;
+  brand?: T;
+  model?: T;
+  version?: T;
+  year?: T;
+  category?: T;
+  fuel?: T;
+  gearbox?: T;
+  powerHp?: T;
+  drivetrain?: T;
+  mileage?: T;
+  seats?: T;
+  doors?: T;
+  color?: T;
+  critAir?: T;
+  pricePerDay?: T;
+  deposit?: T;
+  includedKmPerDay?: T;
+  available?: T;
+  unavailableUntil?: T;
+  minimumAge?: T;
+  minimumLicenseYears?: T;
+  equipment?:
+    | T
+    | {
+        name?: T;
+        id?: T;
+      };
+  images?:
+    | T
+    | {
+        path?: T;
+        id?: T;
+      };
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -272,6 +372,30 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agency".
+ */
+export interface Agency {
+  id: number;
+  name: string;
+  city: string;
+  currency: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agency_select".
+ */
+export interface AgencySelect<T extends boolean = true> {
+  name?: T;
+  city?: T;
+  currency?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

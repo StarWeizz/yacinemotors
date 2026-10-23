@@ -5,6 +5,8 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 import { Users } from './collections/Users'
+import { Vehicles } from './collections/Vehicles'
+import { Agency } from './globals/Agency'
 import { migrations } from './migrations'
 
 const requireEnv = (name: string): string => {
@@ -20,7 +22,8 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
   },
-  collections: [Users],
+  collections: [Users, Vehicles],
+  globals: [Agency],
   editor: lexicalEditor(),
   secret: requireEnv('PAYLOAD_SECRET'),
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
