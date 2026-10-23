@@ -12,7 +12,9 @@
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
     "migrate": "payload migrate",
-    "migrate:create": "payload migrate:create"
+    "migrate:create": "payload migrate:create",
+    "test": "vitest run",
+    "seed": "payload run scripts/seed.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.92.0",
@@ -35,7 +37,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.71.2"
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.5"
   },
   "engines": {
     "node": ">=20.9"
