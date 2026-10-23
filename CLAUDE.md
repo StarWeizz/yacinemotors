@@ -66,7 +66,11 @@ React + TypeScript (strict) · Next.js · Payload CMS (headless, gestion utilisa
 - Les secrets passent par des variables d'environnement (`.env`, ignoré par git) ; seul `.env.example` est versionné.
 - Un `docker compose up` doit suffire pour lancer le site ; documenter la procédure dans le README.
 
-### 8. Documentation
+### 8. Migrations de base de données
+- Toute modification de schéma Payload s'accompagne d'une migration (`npm run migrate:create -- <nom>`), commitée dans la même PR que le changement (ADR-0015).
+- Ne jamais modifier ni supprimer une migration déjà fusionnée : en créer une nouvelle. Pas de `push` automatique du schéma.
+
+### 9. Documentation
 - Le `README.md` documente la stack, l'outillage (linter, tests, Docker), l'installation, les variables d'environnement et les sections exigées par le sujet. Le garder synchronisé avec les ADR.
 
 ## Points ouverts (chacun aura son ADR)
