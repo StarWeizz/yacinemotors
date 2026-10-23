@@ -3,7 +3,7 @@
 Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — test technique LEMDINT, réalisé avec un agent IA (Claude Code).
 Sujet et données : [`sujet/`](sujet/).
 
-> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Docker (PostgreSQL + app + nginx) est opérationnel. Les fonctionnalités F1 à F4 et les tests restent à faire. Les sections ci-dessous sont mises à jour au fil des commits.
+> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Docker, le modèle de données véhicules, le seed et la CI sont en place. Les pages F1 à F4, GSAP et les tests E2E restent à faire. Les sections ci-dessous sont mises à jour au fil des commits.
 
 ## Stack
 
@@ -14,6 +14,10 @@ Sujet et données : [`sujet/`](sujet/).
 | Qualité | ESLint, **zéro `any`** | [ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md) |
 | Tests | Vitest (basiques) + Playwright (E2E, dossier `e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
 | Base de données | PostgreSQL (proche de Supabase : hébergé, open source et économique) | [ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md) |
+| Données | Collection `vehicles` + global `agency`, seed depuis `vehicles.json` | [ADR-0013](docs/adr/0013-modele-vehicules-et-import-depuis-le-json.md) |
+| Migrations | Versionnées dans `src/migrations/` | [ADR-0015](docs/adr/0015-versionnement-des-migrations-de-base-de-donnees.md) |
+| Animations | GSAP (présentation des véhicules, à venir) | [ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md) |
+| CI | GitHub Actions | [ADR-0016](docs/adr/0016-integration-continue-github-actions.md) |
 | Infra | Docker Compose (db + app + nginx reverse proxy, rate limiting) | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [ADR-0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [ADR-0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
 | Notifications | Telegram (API Bot) — à décider | à venir |
 
@@ -47,10 +51,21 @@ npm run lint                  # ESLint
 npm run typecheck             # tsc --noEmit
 npm run build                 # build de production
 npm run generate:types        # régénère src/payload-types.ts
+npm test                      # Vitest
+npm run seed                  # charge sujet/vehicles.json (idempotent, ne le modifie pas)
+npm run migrate:status        # état des migrations
 npm run migrate:create -- <nom>   # après un changement de schéma
 ```
 
-Commandes cibles (à venir) : `npm test` (Vitest), `npm run test:e2e` (Playwright).
+À venir : `npm run test:e2e` (Playwright).
+
+## Migrations de base de données
+
+Chaque changement de schéma = une migration commitée dans la même PR (`src/migrations/`, avec son snapshot `.json`). Jamais de modification d'une migration fusionnée : on en crée une nouvelle. Le seed (données de départ) est séparé des migrations. Détails : ADR-0015.
+
+## CI
+
+`.github/workflows/ci.yml` : lint, types, tests, build, migrations sur base vide + seed idempotent, build de l'image Docker.
 
 ## Workflow de développement
 
