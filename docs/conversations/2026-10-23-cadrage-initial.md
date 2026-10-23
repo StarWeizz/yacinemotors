@@ -78,3 +78,17 @@ Demande : « Ouvre la PR et lance la code review », puis « installe GH et corr
 - Vérifié après correction (Docker) : migration visible dans les logs sans aucune requête, 30 appels `/api/` sans 429, 429 sur la route de formulaire après la rafale, 200 après recréation du conteneur `app` sans toucher à nginx, base non publiée.
 - Les remarques 1 à 5 étaient les plus importantes ; l'ADR-0012 les consigne sans modifier l'ADR-0011.
 - Limite connue : plusieurs réplicas pourraient lancer les migrations en concurrence (noté dans l'ADR-0012).
+
+## 9. PR fusionnée, collection véhicules, migrations, CI
+
+- PR #1 fusionnée (merge commit, pour conserver les micro-commits). `gh` connecté par l'utilisateur.
+- **Analyse des données** : trois champs optionnels (`age_minimum`, `permis_minimum_annees`, `indisponible_jusqu_au`) sont des conditions de location utiles au client → conservés dans le modèle (ADR-0013).
+- **GSAP** (demande de l'utilisateur en cours de travail) : ADR-0014, intégré plus tard avec l'UI du catalogue, en amélioration progressive et avec `prefers-reduced-motion`.
+- **Migrations versionnées** (demande de l'utilisateur) : elles l'étaient déjà dans git ; la politique est maintenant formalisée (ADR-0015, CLAUDE.md, scripts `migrate:status` / `migrate:down`).
+- **CI GitHub Actions** (demande de l'utilisateur) : ADR-0016.
+- **Erreurs de l'IA corrigées en route** :
+  - le script de seed s'exécutait sans rien insérer : `payload run` quitte dès que le module est évalué → remplacement du `.then()` par un top-level await ;
+  - `public/` n'existait plus dans le dépôt (dossier vide non suivi par git) et cassait le build Docker → `.gitkeep`.
+- **Incident machine** : disque plein pendant les builds (cache Docker de 7,7 Go) ; seul le cache de build a été purgé, volumes et images conservés.
+- Vérifié : 10 véhicules insérés puis mis à jour sans doublon (seed idempotent), champs optionnels corrects en base, `vehicles.json` non modifié, migrations appliquées sur base vierge dans Docker.
+- Non vérifié : le workflow CI n'a pas encore tourné (première exécution sur GitHub).

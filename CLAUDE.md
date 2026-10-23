@@ -37,6 +37,7 @@ React + TypeScript (strict) · Next.js · Payload CMS (headless, gestion utilisa
 ### 2. Pull requests et code review
 - Quand c'est utile (fonctionnalité, changement d'architecture, infra), travailler sur une branche dédiée (`feat/...`, `fix/...`, `chore/...`) et ouvrir une PR vers `main` plutôt que committer directement. Les changements triviaux (docs, typos) peuvent aller directement sur `main`.
 - Titre de PR en anglais (Conventional Commits), description en français : contexte, changements, comment tester, ADR liés.
+- La CI GitHub Actions (`.github/workflows/ci.yml`, ADR-0016) doit être verte avant de fusionner.
 - Faire une code review (skill `/code-review`) avant de fusionner ; consigner dans le log les retours acceptés ou rejetés et pourquoi.
 - Ne pas créer de PR ni pousser sans l'accord de l'utilisateur (action visible de l'extérieur).
 
@@ -66,7 +67,11 @@ React + TypeScript (strict) · Next.js · Payload CMS (headless, gestion utilisa
 - Les secrets passent par des variables d'environnement (`.env`, ignoré par git) ; seul `.env.example` est versionné.
 - Un `docker compose up` doit suffire pour lancer le site ; documenter la procédure dans le README.
 
-### 8. Documentation
+### 8. Migrations de base de données
+- Toute modification de schéma Payload s'accompagne d'une migration (`npm run migrate:create -- <nom>`), commitée dans la même PR que le changement (ADR-0015).
+- Ne jamais modifier ni supprimer une migration déjà fusionnée : en créer une nouvelle. Pas de `push` automatique du schéma.
+
+### 9. Documentation
 - Le `README.md` documente la stack, l'outillage (linter, tests, Docker), l'installation, les variables d'environnement et les sections exigées par le sujet. Le garder synchronisé avec les ADR.
 
 ## Points ouverts (chacun aura son ADR)
