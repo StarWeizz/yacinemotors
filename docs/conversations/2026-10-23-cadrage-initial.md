@@ -35,3 +35,46 @@ Outil : Claude Code (Sonnet 5.5). Langue des échanges : français.
 ## 5. Suite prévue
 
 Remplacer le squelette Vite par Next.js + Payload, Dockerfile/compose, décider de la base de données et de l'intégration Telegram (nouveaux ADR), puis F1 à F4.
+
+## 6. Migration vers Next.js + Payload (même jour)
+
+Demande : « Oui, migre vers Next.js et Payload ».
+
+- Branche `feat/migrate-nextjs-payload`, changement d'architecture donc candidat à une PR.
+- Décision prise par l'IA et consignée : PostgreSQL pour Payload (ADR-0009, à confirmer par l'utilisateur ; SQLite en repli).
+- Suppression du squelette Vite, installation de Next 16 et Payload 3.92, routes admin/API, collection `users`, page d'accueil minimale.
+- Problèmes rencontrés :
+  - le port 5432 de la machine était déjà occupé → base de test sur 5433 ;
+  - Payload génère `importMap.js`, ce qui cassait la compilation stricte (`implicit any`) → ajout d'un `importMap.d.ts` typé plutôt qu'un `any` ou un `@ts-ignore`, conformément à la règle zéro `any`.
+- Vérifié : `tsc`, `eslint`, `next build` OK ; en exécution : accueil 200, `/admin` 200, `/api/users` 403 sans authentification (attendu).
+
+## 7. Confirmation PostgreSQL et setup Docker
+
+- Utilisateur : PostgreSQL confirmé, à présenter comme proche de **Supabase** (hébergé, open source, économique). Comme un ADR ne se réécrit pas, l'IA a créé l'ADR-0010 au lieu de modifier l'ADR-0009.
+- Docker : ADR-0011 (db + app + nginx). nginx retenu pour le rate limiting des formulaires et les en-têtes de sécurité.
+- Migrations : Payload ne synchronise pas le schéma en production → migration initiale générée et exécutée au démarrage (`prodMigrations`).
+- Correction de l'IA sur son propre travail : ESLint a échoué sur le fichier de migration généré (variables inutilisées) après un premier commit ; le dossier généré a été exclu du lint dans un commit dédié, sans toucher à la règle zéro `any` pour le code écrit à la main.
+- Vérifié : `docker compose up` → db healthy, migration appliquée, accueil 200, admin 200, en-têtes nginx présents, 429 après 6 requêtes rapides sur `/api/`.
+
+## 8. Code review de la branche et correctifs
+
+Demande : « Ouvre la PR et lance la code review », puis « installe GH et corrige les corrections ».
+
+- `gh` absent et pas de sudo sans mot de passe → binaire installé dans `~/.local/bin` (sans droits root). Connexion à faire par l'utilisateur.
+- `/code-review high` a relevé 9 points ; l'IA les a tous acceptés après les avoir présentés à l'utilisateur :
+
+| # | Remarque | Suite |
+|---|---|---|
+| 1 | Rate limit `/api/` trop strict pour l'admin Payload (constaté : 429 dès 6 requêtes) | Corrigé : zones générales larges, zone stricte réservée aux formulaires |
+| 2 | Statiques sans en-têtes de sécurité (`add_header` non hérité) | Corrigé : fichier d'en-têtes inclus partout |
+| 3 | nginx garde l'ancienne IP de `app` | Corrigé : resolver Docker + variable |
+| 4 | Migrations lancées à la 1ʳᵉ requête, pas au démarrage (doc inexacte) | Corrigé : `instrumentation.ts` |
+| 5 | Variables d'env remplacées par `''` | Corrigé : échec explicite |
+| 6 | Mot de passe non encodé dans l'URL | Contrainte documentée (lettres/chiffres) |
+| 7 | `.env.example` incomplet (`DB_PORT`) | Corrigé |
+| 8 | `push` en dev contourne les migrations | Corrigé : `push: false`, scripts `migrate` |
+| 9 | `override.yml` chargé automatiquement en prod | Corrigé : `docker-compose.dev.yml` opt-in |
+
+- Vérifié après correction (Docker) : migration visible dans les logs sans aucune requête, 30 appels `/api/` sans 429, 429 sur la route de formulaire après la rafale, 200 après recréation du conteneur `app` sans toucher à nginx, base non publiée.
+- Les remarques 1 à 5 étaient les plus importantes ; l'ADR-0012 les consigne sans modifier l'ADR-0011.
+- Limite connue : plusieurs réplicas pourraient lancer les migrations en concurrence (noté dans l'ADR-0012).

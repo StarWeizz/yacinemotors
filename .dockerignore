@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.idea
+.env
+.env.*
+!.env.example
+docs
+sujet
+e2e
+*.tsbuildinfo
