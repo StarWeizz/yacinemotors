@@ -55,3 +55,26 @@ Demande : « Oui, migre vers Next.js et Payload ».
 - Migrations : Payload ne synchronise pas le schéma en production → migration initiale générée et exécutée au démarrage (`prodMigrations`).
 - Correction de l'IA sur son propre travail : ESLint a échoué sur le fichier de migration généré (variables inutilisées) après un premier commit ; le dossier généré a été exclu du lint dans un commit dédié, sans toucher à la règle zéro `any` pour le code écrit à la main.
 - Vérifié : `docker compose up` → db healthy, migration appliquée, accueil 200, admin 200, en-têtes nginx présents, 429 après 6 requêtes rapides sur `/api/`.
+
+## 8. Code review de la branche et correctifs
+
+Demande : « Ouvre la PR et lance la code review », puis « installe GH et corrige les corrections ».
+
+- `gh` absent et pas de sudo sans mot de passe → binaire installé dans `~/.local/bin` (sans droits root). Connexion à faire par l'utilisateur.
+- `/code-review high` a relevé 9 points ; l'IA les a tous acceptés après les avoir présentés à l'utilisateur :
+
+| # | Remarque | Suite |
+|---|---|---|
+| 1 | Rate limit `/api/` trop strict pour l'admin Payload (constaté : 429 dès 6 requêtes) | Corrigé : zones générales larges, zone stricte réservée aux formulaires |
+| 2 | Statiques sans en-têtes de sécurité (`add_header` non hérité) | Corrigé : fichier d'en-têtes inclus partout |
+| 3 | nginx garde l'ancienne IP de `app` | Corrigé : resolver Docker + variable |
+| 4 | Migrations lancées à la 1ʳᵉ requête, pas au démarrage (doc inexacte) | Corrigé : `instrumentation.ts` |
+| 5 | Variables d'env remplacées par `''` | Corrigé : échec explicite |
+| 6 | Mot de passe non encodé dans l'URL | Contrainte documentée (lettres/chiffres) |
+| 7 | `.env.example` incomplet (`DB_PORT`) | Corrigé |
+| 8 | `push` en dev contourne les migrations | Corrigé : `push: false`, scripts `migrate` |
+| 9 | `override.yml` chargé automatiquement en prod | Corrigé : `docker-compose.dev.yml` opt-in |
+
+- Vérifié après correction (Docker) : migration visible dans les logs sans aucune requête, 30 appels `/api/` sans 429, 429 sur la route de formulaire après la rafale, 200 après recréation du conteneur `app` sans toucher à nginx, base non publiée.
+- Les remarques 1 à 5 étaient les plus importantes ; l'ADR-0012 les consigne sans modifier l'ADR-0011.
+- Limite connue : plusieurs réplicas pourraient lancer les migrations en concurrence (noté dans l'ADR-0012).
