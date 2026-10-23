@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { formatDate, formatKilometers, formatPrice } from './format'
 
 // Intl uses narrow/no-break spaces; normalise them for readable assertions.
-const plain = (text: string): string => text.replace(/[  ]/g, ' ')
+const plain = (text: string): string => text.replace(/[\u00a0\u202f]/g, ' ')
 
 describe('format', () => {
   it('formats a price in euros without decimals', () => {
