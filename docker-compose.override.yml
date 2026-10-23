@@ -1,5 +1,0 @@
-# Loaded automatically in local development: exposes the database on localhost only.
-services:
-  db:
-    ports:
-      - "127.0.0.1:${DB_PORT:-5433}:5432"
