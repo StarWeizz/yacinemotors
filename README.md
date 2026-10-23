@@ -3,7 +3,7 @@
 Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — test technique LEMDINT, réalisé avec un agent IA (Claude Code).
 Sujet et données : [`sujet/`](sujet/).
 
-> **État d'avancement** : phase de cadrage terminée (règles, ADR, outillage). Le squelette actuel est encore un projet Vite ; la migration vers Next.js + Payload est la prochaine étape ([ADR-0003](docs/adr/0003-nextjs-react-typescript.md), [ADR-0004](docs/adr/0004-payload-cms-headless.md)). Les sections ci-dessous décrivent la cible et sont mises à jour au fil des commits.
+> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Les fonctionnalités F1 à F4, Docker et les tests restent à faire. Les sections ci-dessous sont mises à jour au fil des commits.
 
 ## Stack
 
@@ -13,6 +13,7 @@ Sujet et données : [`sujet/`](sujet/).
 | CMS | Payload CMS (headless) : utilisateurs et produits | [ADR-0004](docs/adr/0004-payload-cms-headless.md) |
 | Qualité | ESLint, **zéro `any`** | [ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md) |
 | Tests | Vitest (basiques) + Playwright (E2E, dossier `e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
+| Base de données | PostgreSQL | [ADR-0009](docs/adr/0009-postgresql-pour-payload.md) |
 | Infra | Docker + docker compose, nginx si nécessaire | [ADR-0008](docs/adr/0008-docker-et-nginx.md) |
 | Notifications | Telegram (API Bot) — à décider | à venir |
 
@@ -25,10 +26,17 @@ Sujet et données : [`sujet/`](sujet/).
 ## Commandes
 
 ```bash
+cp .env.example .env     # puis renseigner les valeurs (jamais commité)
 npm install
-npm run lint      # ESLint
-npm run build     # tsc + build
+npm run dev              # http://localhost:3000 — admin Payload : /admin
+npm run lint             # ESLint
+npm run typecheck        # tsc --noEmit
+npm run build            # build de production
+npm run generate:types   # régénère src/payload-types.ts
 ```
+
+Une base PostgreSQL est nécessaire (`DATABASE_URI`). En attendant `docker compose` :
+`docker run -d --name ym-pg -e POSTGRES_USER=yacinemotors -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=yacinemotors -p 5433:5432 postgres:17-alpine`.
 
 Commandes cibles (à venir) : `npm test` (Vitest), `npm run test:e2e` (Playwright), `docker compose up` (site complet).
 
