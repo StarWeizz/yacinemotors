@@ -26,6 +26,8 @@ export default buildConfig({
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   db: postgresAdapter({
     pool: { connectionString: requireEnv('DATABASE_URI') },
+    // Schema changes always go through migrations (npm run migrate), never auto-push.
+    push: false,
     prodMigrations: migrations,
   }),
   sharp,
