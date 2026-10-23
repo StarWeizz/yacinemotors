@@ -21,3 +21,16 @@ export const getAvailabilityLabel = ({ available, unavailableUntil }: Availabili
 
 export const getVehicleName = ({ brand, model }: Pick<Vehicle, 'brand' | 'model'>): string =>
   `${brand} ${model}`
+
+/** One available vehicle per category (catalog order), up to `limit`, to feature on the home page. */
+export const pickFeatured = (vehicles: readonly Vehicle[], limit: number): Vehicle[] => {
+  const seen = new Set<string>()
+  const featured: Vehicle[] = []
+  for (const vehicle of vehicles) {
+    if (!vehicle.available || seen.has(vehicle.category)) continue
+    seen.add(vehicle.category)
+    featured.push(vehicle)
+    if (featured.length === limit) break
+  }
+  return featured
+}
