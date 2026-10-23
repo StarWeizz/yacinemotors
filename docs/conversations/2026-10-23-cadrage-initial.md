@@ -35,3 +35,15 @@ Outil : Claude Code (Sonnet 5.5). Langue des échanges : français.
 ## 5. Suite prévue
 
 Remplacer le squelette Vite par Next.js + Payload, Dockerfile/compose, décider de la base de données et de l'intégration Telegram (nouveaux ADR), puis F1 à F4.
+
+## 6. Migration vers Next.js + Payload (même jour)
+
+Demande : « Oui, migre vers Next.js et Payload ».
+
+- Branche `feat/migrate-nextjs-payload`, changement d'architecture donc candidat à une PR.
+- Décision prise par l'IA et consignée : PostgreSQL pour Payload (ADR-0009, à confirmer par l'utilisateur ; SQLite en repli).
+- Suppression du squelette Vite, installation de Next 16 et Payload 3.92, routes admin/API, collection `users`, page d'accueil minimale.
+- Problèmes rencontrés :
+  - le port 5432 de la machine était déjà occupé → base de test sur 5433 ;
+  - Payload génère `importMap.js`, ce qui cassait la compilation stricte (`implicit any`) → ajout d'un `importMap.d.ts` typé plutôt qu'un `any` ou un `@ts-ignore`, conformément à la règle zéro `any`.
+- Vérifié : `tsc`, `eslint`, `next build` OK ; en exécution : accueil 200, `/admin` 200, `/api/users` 403 sans authentification (attendu).
