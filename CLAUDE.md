@@ -37,6 +37,7 @@ React + TypeScript (strict) · Next.js · Payload CMS (headless, gestion utilisa
 ### 2. Pull requests et code review
 - Quand c'est utile (fonctionnalité, changement d'architecture, infra), travailler sur une branche dédiée (`feat/...`, `fix/...`, `chore/...`) et ouvrir une PR vers `main` plutôt que committer directement. Les changements triviaux (docs, typos) peuvent aller directement sur `main`.
 - Titre de PR en anglais (Conventional Commits), description en français : contexte, changements, comment tester, ADR liés.
+- La CI GitHub Actions (`.github/workflows/ci.yml`, ADR-0016) doit être verte avant de fusionner.
 - Faire une code review (skill `/code-review`) avant de fusionner ; consigner dans le log les retours acceptés ou rejetés et pourquoi.
 - Ne pas créer de PR ni pousser sans l'accord de l'utilisateur (action visible de l'extérieur).
 
