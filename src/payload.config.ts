@@ -7,6 +7,12 @@ import sharp from 'sharp'
 import { Users } from './collections/Users'
 import { migrations } from './migrations'
 
+const requireEnv = (name: string): string => {
+  const value = process.env[name]
+  if (!value) throw new Error(`Missing required environment variable: ${name}`)
+  return value
+}
+
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default buildConfig({
@@ -16,10 +22,10 @@ export default buildConfig({
   },
   collections: [Users],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET ?? '',
+  secret: requireEnv('PAYLOAD_SECRET'),
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   db: postgresAdapter({
-    pool: { connectionString: process.env.DATABASE_URI ?? '' },
+    pool: { connectionString: requireEnv('DATABASE_URI') },
     prodMigrations: migrations,
   }),
   sharp,
