@@ -1,75 +1,55 @@
-# React + TypeScript + Vite
+# Yacine Motors
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — test technique LEMDINT, réalisé avec un agent IA (Claude Code).
+Sujet et données : [`sujet/`](sujet/).
 
-Currently, two official plugins are available:
+> **État d'avancement** : phase de cadrage terminée (règles, ADR, outillage). Le squelette actuel est encore un projet Vite ; la migration vers Next.js + Payload est la prochaine étape ([ADR-0003](docs/adr/0003-nextjs-react-typescript.md), [ADR-0004](docs/adr/0004-payload-cms-headless.md)). Les sections ci-dessous décrivent la cible et sont mises à jour au fil des commits.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+| Domaine | Choix | Décision |
+|---|---|---|
+| Front | React + Next.js, TypeScript strict | [ADR-0003](docs/adr/0003-nextjs-react-typescript.md) |
+| CMS | Payload CMS (headless) : utilisateurs et produits | [ADR-0004](docs/adr/0004-payload-cms-headless.md) |
+| Qualité | ESLint, **zéro `any`** | [ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md) |
+| Tests | Vitest (basiques) + Playwright (E2E, dossier `e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
+| Infra | Docker + docker compose, nginx si nécessaire | [ADR-0008](docs/adr/0008-docker-et-nginx.md) |
+| Notifications | Telegram (API Bot) — à décider | à venir |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Linter et règles de code
 
-## Expanding the ESLint configuration
+- ESLint avec `typescript-eslint`, `react-hooks`, `react-refresh`.
+- `@typescript-eslint/no-explicit-any` et `ban-ts-comment` en **erreur** : pas de `any`, pas de `@ts-ignore`.
+- `npm run lint` et la compilation TypeScript doivent passer avant chaque commit.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Commandes
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run lint      # ESLint
+npm run build     # tsc + build
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Commandes cibles (à venir) : `npm test` (Vitest), `npm run test:e2e` (Playwright), `docker compose up` (site complet).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Workflow de développement
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Micro commits** en anglais, Conventional Commits, Claude co-auteur ([ADR-0002](docs/adr/0002-micro-commits-et-conventional-commits.md)).
+- **PR et code review** quand c'est utile.
+- **ADR** pour chaque décision, jamais supprimés : [`docs/adr/`](docs/adr/).
+- **Log des conversations** avec l'IA : [`docs/conversations/`](docs/conversations/).
+- Règles de pilotage de l'IA : [`CLAUDE.md`](CLAUDE.md).
+
+## Structure du dépôt
 
 ```
+sujet/              sujet.pdf et vehicles.json (ne pas modifier)
+docs/adr/           décisions d'architecture
+docs/conversations/ journal des échanges avec l'IA
+e2e/                tests Playwright (à venir)
+CLAUDE.md           règles du projet pour l'agent
+```
+
+## Sections exigées par le sujet
+
+À compléter au fil du projet : installation et lancement, choix techniques et architecture (fonctionnement Telegram, alternatives écartées), workflow assisté par IA (exemples de corrections), sécurité, choix face aux points flous, limites et suites.
