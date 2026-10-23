@@ -32,6 +32,7 @@ services:
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/proxy_params:/etc/nginx/proxy_params:ro
+      - ./docker/nginx/security_headers:/etc/nginx/security_headers:ro
     depends_on:
       - app
 
