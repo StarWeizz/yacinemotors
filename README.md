@@ -14,7 +14,7 @@ Sujet et données : [`sujet/`](sujet/).
 | Qualité | ESLint, **zéro `any`** | [ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md) |
 | Tests | Vitest (basiques) + Playwright (E2E, dossier `e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
 | Base de données | PostgreSQL (proche de Supabase : hébergé, open source et économique) | [ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md) |
-| Infra | Docker Compose (db + app + nginx reverse proxy, rate limiting) | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [ADR-0011](docs/adr/0011-architecture-docker-compose-et-nginx.md) |
+| Infra | Docker Compose (db + app + nginx reverse proxy, rate limiting) | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [ADR-0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [ADR-0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
 | Notifications | Telegram (API Bot) — à décider | à venir |
 
 ## Linter et règles de code
@@ -31,22 +31,23 @@ docker compose up -d --build
 # site : http://localhost:8080 — admin Payload : http://localhost:8080/admin
 ```
 
-- `db` : PostgreSQL 17, volume persistant, publié sur `127.0.0.1:5433` en local uniquement (`docker-compose.override.yml`).
-- `app` : Next.js en mode `standalone`, utilisateur non-root ; les migrations Payload s'appliquent au démarrage.
-- `nginx` : seul service exposé ; en-têtes de sécurité, cache des statiques, limitation de débit (plus stricte sur `/api/`), config dans `docker/nginx/`.
+- `db` : PostgreSQL 17, volume persistant, **non publié** par défaut.
+- `app` : Next.js en mode `standalone`, utilisateur non-root ; les migrations Payload s'appliquent au démarrage du serveur.
+- `nginx` : seul service exposé ; en-têtes de sécurité, cache des statiques, limitation de débit (stricte uniquement sur les formulaires `/api/contact` et `/api/reservation`, voir ADR-0012), config dans `docker/nginx/`.
 - Passer à Supabase ou un autre PostgreSQL managé = changer `DATABASE_URI` (voir ADR-0010).
 
 ## Développement local (hors Docker)
 
 ```bash
-docker compose up -d db       # base seule, sur 127.0.0.1:5433
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db   # base seule, sur 127.0.0.1:5433
 npm install
+npm run migrate               # le schéma n'est jamais poussé automatiquement
 npm run dev                   # http://localhost:3000 — admin : /admin
 npm run lint                  # ESLint
 npm run typecheck             # tsc --noEmit
 npm run build                 # build de production
 npm run generate:types        # régénère src/payload-types.ts
-npx payload migrate:create <nom>   # après un changement de schéma
+npm run migrate:create -- <nom>   # après un changement de schéma
 ```
 
 Commandes cibles (à venir) : `npm test` (Vitest), `npm run test:e2e` (Playwright).
