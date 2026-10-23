@@ -47,3 +47,11 @@ Demande : « Oui, migre vers Next.js et Payload ».
   - le port 5432 de la machine était déjà occupé → base de test sur 5433 ;
   - Payload génère `importMap.js`, ce qui cassait la compilation stricte (`implicit any`) → ajout d'un `importMap.d.ts` typé plutôt qu'un `any` ou un `@ts-ignore`, conformément à la règle zéro `any`.
 - Vérifié : `tsc`, `eslint`, `next build` OK ; en exécution : accueil 200, `/admin` 200, `/api/users` 403 sans authentification (attendu).
+
+## 7. Confirmation PostgreSQL et setup Docker
+
+- Utilisateur : PostgreSQL confirmé, à présenter comme proche de **Supabase** (hébergé, open source, économique). Comme un ADR ne se réécrit pas, l'IA a créé l'ADR-0010 au lieu de modifier l'ADR-0009.
+- Docker : ADR-0011 (db + app + nginx). nginx retenu pour le rate limiting des formulaires et les en-têtes de sécurité.
+- Migrations : Payload ne synchronise pas le schéma en production → migration initiale générée et exécutée au démarrage (`prodMigrations`).
+- Correction de l'IA sur son propre travail : ESLint a échoué sur le fichier de migration généré (variables inutilisées) après un premier commit ; le dossier généré a été exclu du lint dans un commit dédié, sans toucher à la règle zéro `any` pour le code écrit à la main.
+- Vérifié : `docker compose up` → db healthy, migration appliquée, accueil 200, admin 200, en-têtes nginx présents, 429 après 6 requêtes rapides sur `/api/`.
