@@ -38,7 +38,7 @@ export type ReservationQuote = {
 export type ReservationVehicle = {
   minimumAge?: number | null
   minimumLicenseYears?: number | null
-  available: boolean
+  available?: boolean | null
   unavailableUntil?: string | null
   pricePerDay: number
   includedKmPerDay: number
@@ -153,11 +153,14 @@ export const validateReservation = (
   const start = parseIsoDate(input.startDate)
   const end = parseIsoDate(input.endDate)
   const todayTime = parseIsoDate(today) ?? 0
-  const earliest = vehicle.available || !vehicle.unavailableUntil
+  const isAvailable = vehicle.available !== false
+  const earliest = isAvailable || !vehicle.unavailableUntil
     ? todayTime
     : Math.max(todayTime, parseIsoDate(vehicle.unavailableUntil.slice(0, 10)) ?? 0)
 
-  if (start === null) errors.startDate = 'Date de départ invalide.'
+  if (!isAvailable && !vehicle.unavailableUntil) {
+    errors.startDate = "Ce véhicule n'est pas disponible actuellement."
+  } else if (start === null) errors.startDate = 'Date de départ invalide.'
   else if (start < todayTime) errors.startDate = 'La date de départ ne peut pas être passée.'
   else if (start < earliest) {
     errors.startDate = `Ce véhicule n'est pas disponible avant le ${formatDate(new Date(earliest).toISOString().slice(0, 10))}.`

@@ -102,6 +102,12 @@ describe('validateReservation', () => {
     expect(later.ok).toBe(true)
   })
 
+  it('refuses a vehicle that is unavailable with no return date', () => {
+    const gone: ReservationVehicle = { ...vehicle, available: false, unavailableUntil: null }
+    const result = validateReservation(reservation, gone, TODAY)
+    expect(!result.ok && result.errors.startDate).toContain('pas disponible')
+  })
+
   it('ignores any price sent by the client', () => {
     const result = validateReservation({ ...reservation, pricePerDay: '1', total: '1' }, vehicle, TODAY)
     expect(result.ok && result.data.quote.total).toBe(300)
