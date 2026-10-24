@@ -19,3 +19,14 @@ export const getVehicles = async (): Promise<Vehicle[]> => {
   })
   return docs
 }
+
+export const getVehicleBySlug = async (slug: string): Promise<Vehicle | null> => {
+  const payload = await getPayload({ config })
+  const { docs } = await payload.find({
+    collection: 'vehicles',
+    where: { slug: { equals: slug } },
+    limit: 1,
+    depth: 0,
+  })
+  return docs[0] ?? null
+}
