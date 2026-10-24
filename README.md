@@ -1,101 +1,260 @@
 # Yacine Motors
 
-Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — test technique LEMDINT, réalisé avec un agent IA (Claude Code).
-Sujet et données : [`sujet/`](sujet/).
+Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — test technique LEMDINT (stage développeur web), réalisé **avec un agent IA** (Claude Code) et documenté de bout en bout.
 
-> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Docker, le modèle de données véhicules, le seed et la CI sont en place. F1 à F4 sont en place : accueil, catalogue, formulaire de contact et demande de réservation, avec envoi sur Telegram, GSAP et tests E2E. Restent à compléter : sections du sujet (sécurité, points flous, limites), déploiement. Les sections ci-dessous sont mises à jour au fil des commits.
+- Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
+- Dépôt : https://github.com/StarWeizz/yacinemotors
+- Décisions : [19 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
-## Stack
+## Ce que fait le site
 
-| Domaine | Choix | Décision |
+| | Fonctionnalité | Où |
 |---|---|---|
-| Front | React + Next.js, TypeScript strict | [ADR-0003](docs/adr/0003-nextjs-react-typescript.md) |
-| CMS | Payload CMS (headless) : utilisateurs et produits | [ADR-0004](docs/adr/0004-payload-cms-headless.md) |
-| Qualité | ESLint, **zéro `any`** | [ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md) |
-| Tests | Vitest (basiques) + Playwright (E2E, dossier `e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
-| Base de données | PostgreSQL (proche de Supabase : hébergé, open source et économique) | [ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md) |
-| Telegram | API Bot `sendMessage` appelée côté serveur, token jamais exposé | [ADR-0018](docs/adr/0018-integration-telegram-bot-api-cote-serveur.md) |
-| Formulaires | Validation serveur, honeypot, contrôle d'origine, fonctionnent sans JavaScript | [ADR-0019](docs/adr/0019-formulaires-validation-anti-spam-amelioration-progressive.md) |
-| Données | Collection `vehicles` + global `agency`, seed depuis `vehicles.json` | [ADR-0013](docs/adr/0013-modele-vehicules-et-import-depuis-le-json.md) |
-| Migrations | Versionnées dans `src/migrations/` | [ADR-0015](docs/adr/0015-versionnement-des-migrations-de-base-de-donnees.md) |
-| Interface | Rendu serveur à la requête, CSS simple, visuel de remplacement | [ADR-0017](docs/adr/0017-interface-catalogue-rendu-serveur-et-css-simple.md) |
-| Animations | GSAP (apparition au scroll, désactivée si `prefers-reduced-motion`) | [ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md) |
-| CI | GitHub Actions | [ADR-0016](docs/adr/0016-integration-continue-github-actions.md) |
-| Infra | Docker Compose (db + app + nginx reverse proxy, rate limiting) | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [ADR-0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [ADR-0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
-| Notifications | Telegram (API Bot) — à décider | à venir |
+| F1 | **Page d'accueil** : présentation de l'agence, chiffres calculés depuis le catalogue, sélection de véhicules | `/` |
+| F2 | **Catalogue** : les 10 véhicules avec toutes leurs informations (prix/jour, caution, km inclus, Crit'Air, équipements, disponibilité et date de retour, conditions du conducteur) | `/vehicules` |
+| F3 | **Formulaire de contact** : chaque envoi arrive sur le Telegram de l'agence | `/contact` |
+| F4 | **Demande de réservation** : bouton « Demander une réservation » sur chaque véhicule, formulaire dédié, envoi sur Telegram | `/vehicules/[slug]/reservation` |
+| — | **Administration** : le gérant modifie véhicules, tarifs et informations d'agence sans développeur | `/admin` |
 
-## Linter et règles de code
+Bonus traités : **tests automatisés** (39 unitaires, 23 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'accessibilité a été prise en compte (voir « Limites ») mais n'a pas fait l'objet d'un audit.
 
-- ESLint avec `typescript-eslint`, `react-hooks`, `react-refresh`.
-- `@typescript-eslint/no-explicit-any` et `ban-ts-comment` en **erreur** : pas de `any`, pas de `@ts-ignore`.
-- `npm run lint` et la compilation TypeScript doivent passer avant chaque commit.
+---
 
-## Configuration de Telegram
+## Installation et lancement
 
-1. Créer un bot avec [@BotFather](https://t.me/BotFather) (`/newbot`) et récupérer le **token**.
-2. Écrire au bot (ou l'ajouter à un groupe), puis ouvrir `https://api.telegram.org/bot<token>/getUpdates` pour lire le **chat id** (`message.chat.id`).
-3. Renseigner `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID` dans `.env` (jamais commité).
+Prérequis : Docker (et Node.js ≥ 20.9 pour le développement hors conteneur).
 
-Brancher un autre bot (celui de l'évaluateur) = changer ces deux variables. Sans elles, les formulaires répondent « le message n'a pas pu être envoyé » au lieu de simuler un envoi. Les tests n'appellent jamais la vraie API : un faux serveur Telegram (`e2e/support/telegram-mock.mjs`) est lancé avec Playwright.
+### Variables d'environnement
 
-## Lancement avec Docker (recommandé)
+Copier `.env.example` en `.env` (jamais commité — `.gitignore`) :
+
+| Variable | Rôle | Obligatoire |
+|---|---|---|
+| `POSTGRES_PASSWORD` | Mot de passe PostgreSQL. **Lettres et chiffres uniquement** (il est placé dans une URL de connexion) : `openssl rand -hex 16` | oui |
+| `PAYLOAD_SECRET` | Secret de Payload (sessions, jetons) : `openssl rand -hex 32` | oui |
+| `POSTGRES_USER`, `POSTGRES_DB` | Utilisateur et base (défaut `yacinemotors`) | non |
+| `TELEGRAM_BOT_TOKEN` | Token du bot Telegram | pour envoyer les messages |
+| `TELEGRAM_CHAT_ID` | Conversation ou groupe qui reçoit les messages | pour envoyer les messages |
+| `TELEGRAM_API_URL` | Remplace `https://api.telegram.org` (tests uniquement) | non |
+| `HTTP_PORT` | Port d'nginx sur la machine (défaut `8080`) | non |
+| `DATABASE_URI`, `DB_PORT` | Développement hors Docker uniquement | non |
+
+Sans les variables Telegram, le site fonctionne mais les formulaires répondent « n'a pas pu être envoyé » (ils ne simulent jamais un envoi).
+
+### Configurer le bot Telegram
+
+1. Créer un bot avec [@BotFather](https://t.me/BotFather) (`/newbot`) et copier le **token**.
+2. Écrire un message au bot (ou l'ajouter à un groupe), puis ouvrir `https://api.telegram.org/bot<token>/getUpdates` et lire `message.chat.id` : c'est le **chat id**.
+3. Renseigner les deux variables dans `.env`.
+
+Brancher un autre bot (celui de l'évaluateur) = changer ces deux variables, sans toucher au code.
+
+### Avec Docker (recommandé)
 
 ```bash
-cp .env.example .env          # renseigner POSTGRES_PASSWORD et PAYLOAD_SECRET (openssl rand -hex 32)
-docker compose up -d --build
-# site : http://localhost:8080 — admin Payload : http://localhost:8080/admin
+cp .env.example .env              # renseigner les variables ci-dessus
+docker compose up -d --build      # PostgreSQL + application + nginx
 ```
 
-- `db` : PostgreSQL 17, volume persistant, **non publié** par défaut.
-- `app` : Next.js en mode `standalone`, utilisateur non-root ; les migrations Payload s'appliquent au démarrage du serveur.
-- `nginx` : seul service exposé ; en-têtes de sécurité, cache des statiques, limitation de débit (stricte uniquement sur les formulaires `/api/contact` et `/api/reservation`, voir ADR-0012), config dans `docker/nginx/`.
-- Passer à Supabase ou un autre PostgreSQL managé = changer `DATABASE_URI` (voir ADR-0010).
+Le site est sur http://localhost:8080 et l'administration sur http://localhost:8080/admin. Les migrations s'appliquent automatiquement au démarrage du serveur.
 
-## Développement local (hors Docker)
+Pour charger le catalogue, lancer le seed depuis l'hôte (le dossier `sujet/` n'est pas dans l'image) en pointant vers la base — voir « Développement local » ci-dessous avec le fichier `docker-compose.dev.yml`, qui publie la base sur `127.0.0.1:5433`. Puis **créer le compte administrateur sur `/admin` immédiatement** (voir « Sécurité »).
+
+### Développement local (hors Docker)
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db   # base seule, sur 127.0.0.1:5433
+cp .env.example .env              # DATABASE_URI pointe vers cette base
 npm install
-npm run migrate               # le schéma n'est jamais poussé automatiquement
-npm run dev                   # http://localhost:3000 — admin : /admin
-npm run lint                  # ESLint
-npm run typecheck             # tsc --noEmit
-npm run build                 # build de production
-npm run generate:types        # régénère src/payload-types.ts
-npm test                      # Vitest
-npm run seed                  # charge sujet/vehicles.json (idempotent, ne le modifie pas)
-npm run migrate:status        # état des migrations
-npm run migrate:create -- <nom>   # après un changement de schéma
+npm run migrate                   # applique les migrations (le schéma n'est jamais poussé automatiquement)
+npm run seed                      # charge sujet/vehicles.json — idempotent, ne modifie pas le fichier
+npm run dev                       # http://localhost:3000 — admin : /admin
 ```
 
-`npm run test:e2e` : tests Playwright du dossier `e2e/` (base migrée et seedée requise ; le serveur est construit et lancé automatiquement).
+### Commandes
 
-## Migrations de base de données
+| Commande | Effet |
+|---|---|
+| `npm run lint` · `npm run typecheck` | ESLint · `tsc --noEmit` |
+| `npm test` | tests unitaires (Vitest) |
+| `npm run test:e2e` | tests Playwright (base migrée et seedée requise ; l'app est construite et lancée automatiquement avec un faux serveur Telegram) |
+| `npm run build` · `npm start` | build de production · serveur standalone |
+| `npm run migrate` · `migrate:status` · `migrate:create -- <nom>` | migrations (voir [ADR-0015](docs/adr/0015-versionnement-des-migrations-de-base-de-donnees.md)) |
+| `npm run generate:types` | régénère `src/payload-types.ts` |
 
-Chaque changement de schéma = une migration commitée dans la même PR (`src/migrations/`, avec son snapshot `.json`). Jamais de modification d'une migration fusionnée : on en crée une nouvelle. Le seed (données de départ) est séparé des migrations. Détails : ADR-0015.
+---
 
-## CI
+## Choix techniques et architecture
 
-`.github/workflows/ci.yml` : lint, types, tests, build, migrations sur base vide + seed idempotent, build de l'image Docker.
+### Stack
 
-## Workflow de développement
+| Domaine | Choix | Pourquoi (ADR) |
+|---|---|---|
+| Front | **React + Next.js**, TypeScript strict | Robuste, moderne, rapide ; page rendue côté serveur donc utilisable **sans JavaScript** côté visiteur ; branchable à toute API ([ADR-0003](docs/adr/0003-nextjs-react-typescript.md)) |
+| CMS | **Payload CMS** (headless, dans le même projet Next.js) | Le gérant modifie lui-même son site ; modèle « utilisateurs + produits » ; types TypeScript générés ([ADR-0004](docs/adr/0004-payload-cms-headless.md)) |
+| Base | **PostgreSQL** | Standard, relationnel ; proche de **Supabase** (hébergé, open source et économique) : passer à une base managée = changer `DATABASE_URI` ([ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md)) |
+| Telegram | API Bot `sendMessage`, appelée côté serveur | Token jamais exposé au navigateur ([ADR-0018](docs/adr/0018-integration-telegram-bot-api-cote-serveur.md)) |
+| Animations | **GSAP** | Apparition au scroll, en amélioration progressive ([ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md)) |
+| Qualité | ESLint, TypeScript `strict`, **zéro `any`** | Règle imposée par ESLint ([ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md)) |
+| Tests | Vitest + Playwright (`e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
+| Infra | Docker Compose : `db` + `app` + `nginx` | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
+| CI | GitHub Actions | [ADR-0016](docs/adr/0016-integration-continue-github-actions.md) |
 
-- **Micro commits** en anglais, Conventional Commits, Claude co-auteur ([ADR-0002](docs/adr/0002-micro-commits-et-conventional-commits.md)).
-- **PR et code review** quand c'est utile.
-- **ADR** pour chaque décision, jamais supprimés : [`docs/adr/`](docs/adr/).
-- **Log des conversations** avec l'IA : [`docs/conversations/`](docs/conversations/).
-- Règles de pilotage de l'IA : [`CLAUDE.md`](CLAUDE.md).
+> **Écart assumé avec le sujet** : le client ne veut « pas de back-office à gérer ». Payload ajoute une interface d'administration. Elle sert uniquement à **éditer le catalogue** ; les *demandes* des clients, elles, n'arrivent que sur Telegram et ne sont stockées nulle part, donc il n'y a rien à « gérer » côté demandes. C'est un choix du candidat, justifié dans l'[ADR-0004](docs/adr/0004-payload-cms-headless.md).
 
-## Structure du dépôt
+### Organisation du code
 
 ```
-sujet/              sujet.pdf et vehicles.json (ne pas modifier)
-docs/adr/           décisions d'architecture
-docs/conversations/ journal des échanges avec l'IA
-e2e/                tests Playwright (pages, formulaires, sans JavaScript, faux Telegram)
-CLAUDE.md           règles du projet pour l'agent
+src/
+  app/(frontend)/        pages du site (accueil, catalogue, contact, réservation) et routes API des formulaires
+  app/(payload)/         administration et API REST de Payload
+  collections/           Vehicles, Users          globals/  Agency
+  components/            cartes véhicule, en-tête/pied, animation GSAP, formulaires (components/forms)
+  lib/vehicles/          lecture de vehicles.json (validée), requêtes Payload, présentation (conditions, disponibilité)
+  lib/forms/             validation serveur, lecture sécurisée de la requête, réponses JSON ou redirection
+  lib/telegram/          client sendMessage et mise en forme des messages
+  migrations/            migrations de base versionnées
+scripts/seed.ts          import idempotent de sujet/vehicles.json
+e2e/                     tests Playwright + faux serveur Telegram
+docker/nginx/            configuration nginx
+docs/adr/, docs/conversations/
 ```
 
-## Sections exigées par le sujet
+Principes : composants serveur par défaut (seuls les formulaires et l'animation sont des composants clients) ; la logique métier est en fonctions pures testées (`lib/`) ; pas de `any`, les données externes (JSON, réponse Telegram, formulaires) sont validées à l'exécution.
 
-À compléter au fil du projet : installation et lancement, choix techniques et architecture (fonctionnement Telegram, alternatives écartées), workflow assisté par IA (exemples de corrections), sécurité, choix face aux points flous, limites et suites.
+### Données
+
+`sujet/vehicles.json` est la **source de départ** ; il n'est jamais modifié. Le script `npm run seed` le valide à l'exécution puis crée ou met à jour (par `slug`) la collection `vehicles` et le global `agency` de Payload ([ADR-0013](docs/adr/0013-modele-vehicules-et-import-depuis-le-json.md)). Tous les champs sont conservés, y compris ceux qui ne concernent que certains véhicules : `age_minimum`, `permis_minimum_annees` et `indisponible_jusqu_au` sont des **conditions de location** affichées au client. Une fois chargé, c'est Payload qui fait foi : le gérant modifie le catalogue dans `/admin`.
+
+Les pages lisant le catalogue sont rendues **à chaque requête** : le gérant voit ses changements immédiatement et le build n'a pas besoin de base de données ([ADR-0017](docs/adr/0017-interface-catalogue-rendu-serveur-et-css-simple.md)).
+
+### Fonctionnement de l'envoi vers Telegram
+
+```
+Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reservation (Next.js)
+                              1. contrôle d'origine, taille, honeypot
+                              2. validation côté serveur (+ relecture du véhicule en base pour la réservation)
+                              3. message HTML échappé, tronqué à 4096 caractères
+                              4. POST https://api.telegram.org/bot<token>/sendMessage
+◀── JSON (avec JS) ou redirection 303 (sans JS)
+```
+
+- Documentation officielle utilisée : méthode `sendMessage` (`chat_id` et `text` obligatoires, texte de 1 à 4096 caractères) ; en `parse_mode: HTML`, `<`, `>` et `&` doivent être remplacés par des entités.
+- Le **token reste sur le serveur** (variables d'environnement) et n'est jamais journalisé (testé).
+- Les formulaires sont de vrais `<form method="post">` : ils **fonctionnent sans JavaScript** (le serveur répond par une redirection avec un message). Un composant client les améliore : envoi en `fetch`, saisie conservée, erreurs champ par champ ([ADR-0019](docs/adr/0019-formulaires-validation-anti-spam-amelioration-progressive.md)).
+- Réservation : le véhicule est relu en base à partir de son `slug`. Prix, disponibilité et conditions viennent de la base, jamais du formulaire. Le message contient une **estimation indicative** (jours × prix/jour, km inclus, caution).
+- Les tests n'appellent jamais la vraie API Telegram : Playwright lance un faux serveur (`e2e/support/telegram-mock.mjs`) via `TELEGRAM_API_URL`.
+
+### Alternatives envisagées et écartées
+
+| Sujet | Écarté | Raison |
+|---|---|---|
+| Front | React + Vite (SPA) — c'était le squelette de départ | Pas de rendu serveur, pas d'endroit pour cacher le token Telegram, SEO moins bon |
+| Données | Lire `vehicles.json` directement | Le client ne pourrait rien modifier sans développeur |
+| CMS | Strapi, Directus, Sanity | Payload s'installe dans le même projet Next.js, en TypeScript |
+| Base | SQLite, MongoDB | SQLite : pas de chemin vers une base managée ; MongoDB : données relationnelles |
+| Telegram | Appel depuis le navigateur ; webhook ; e-mail ; n8n/Zapier ; grammY/telegraf | Token exposé ; un webhook sert à *recevoir* ; dépendance inutile pour un seul appel HTTP |
+| Formulaires | Server Actions ; reCAPTCHA/Turnstile ; modale | Server Actions : URL non ciblables par nginx ; captcha : dépendance et données personnelles (à reconsidérer si du spam apparaît) ; page dédiée plus accessible |
+| Rendu | Pages statiques + revalidation | Exige une base au build et une invalidation depuis Payload |
+| Style | Tailwind, CSS-in-JS | Dépendance sans besoin réel à cette échelle |
+
+---
+
+## Workflow de développement assisté par IA
+
+### Outils et tâches
+
+**Claude Code** (CLI) a été utilisé pour l'ensemble du projet : analyse du sujet, rédaction du code, des tests, de la configuration Docker/nginx/CI et de la documentation, ainsi que pour une **revue de code** (`/code-review`) sur la branche d'infrastructure. Le candidat décide, l'agent exécute puis rend compte.
+
+### Comment l'IA a été cadrée
+
+- **`CLAUDE.md`** : règles de projet lues à chaque session — micro commits en anglais (Conventional Commits, Claude co-auteur), documentation en français, ADR jamais supprimés, journal des conversations, zéro `any`, tests, Docker, migrations versionnées, PR + code review + **CI verte avant fusion**.
+- **Un ADR par décision** ([`docs/adr/`](docs/adr/)) : l'IA doit consigner le pourquoi, les alternatives et les conséquences. Quand une décision évolue, un nouvel ADR la complète ou la remplace (les ADR 0010 et 0012 précisent les ADR 0009 et 0011 sans les réécrire).
+- **Découpage** : une branche et une PR par grand sujet (socle, véhicules, accueil + catalogue, formulaires Telegram, README), micro commits à l'intérieur, vérification (lint, types, tests, build, Docker) avant chaque commit significatif.
+- **Journal des échanges** : [`docs/conversations/2026-10-23-cadrage-initial.md`](docs/conversations/2026-10-23-cadrage-initial.md) — demandes, propositions, corrections, erreurs.
+- **Garde-fous automatiques** : ESLint (zéro `any`, pas de `@ts-ignore`), tests, CI sur chaque PR.
+
+### Exemples où l'IA a été corrigée, refusée ou réorientée
+
+1. **Langue** — l'IA a rédigé le premier `CLAUDE.md` en anglais. Le candidat a interrompu : « En français stp. Sauf les commits ». Le fichier a été réécrit et la règle de langue ajoutée au `CLAUDE.md` et à l'[ADR-0001](docs/adr/0001-enregistrer-les-decisions-d-architecture.md).
+2. **Périmètre ajouté en cours de route par le candidat** — PR et code review « si utiles », Docker + nginx, versionnement des migrations « comme Supabase ou Laravel », CI GitHub, GSAP pour la présentation des véhicules. Chaque demande est devenue une règle dans `CLAUDE.md` et/ou un ADR (0002, 0008, 0014, 0015, 0016).
+3. **La revue de code a invalidé une configuration de l'IA** — la limitation de débit nginx proposée par l'IA (1 requête/s sur `/api/`) était trop stricte : elle bloquait l'administration (constaté en test : 429 dès les premières requêtes). La revue a aussi relevé 8 autres défauts : en-têtes de sécurité perdus sur les fichiers statiques, nginx qui garde l'ancienne IP de l'app, migrations lancées à la première requête (la doc disait « au démarrage »), variables d'environnement remplacées par une chaîne vide, etc. Les 9 points ont été traités, vérifiés dans Docker et consignés ([ADR-0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md)).
+4. **L'IA a corrigé ses propres erreurs** — un script de seed qui n'insérait rien sans erreur (le lanceur quitte avant la fin d'une promesse non attendue) ; `next start` incompatible avec `output: standalone` (les tests passaient mais sans garantie que CSS/JS soient servis) ; un contrôle d'origine qui aurait échoué derrière nginx car `Host` perd le port ; des tests E2E faussement rouges à cause d'un ancien serveur resté sur le port 3000 (vérifié que le processus était bien celui du projet avant de l'arrêter).
+5. **Rigueur sur les sources** — pour Telegram, l'outil de lecture web n'a lu que le début d'une page de 580 000 caractères ; plutôt que de deviner, l'IA a téléchargé la page et extrait elle-même les sections `sendMessage`, le mode HTML et `ResponseParameters`.
+6. **Ne pas inventer** — le sujet ne donne ni adresse, ni téléphone, ni horaires de l'agence : le site n'en affiche aucun. L'accueil n'utilise que des chiffres calculés à partir du catalogue.
+
+### Ce que le candidat a décidé et vérifié
+
+- Décisions d'architecture : Next.js + Payload CMS (choix hors sujet, pour que le client édite son site), PostgreSQL avec la perspective Supabase, Docker + nginx, GSAP, versionnement des migrations, CI.
+- Pilotage : validation de chaque étape avant de passer à la suivante, **fusion des PR uniquement après CI verte**.
+- Vérifications automatiques : 39 tests unitaires, 23 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
+
+> **À compléter par le candidat avant le rendu** : ce qu'il a relu et réécrit lui-même ligne à ligne, et les points qu'il a testés à la main (par exemple un envoi réel avec son propre bot Telegram, qui n'a pas pu être fait dans l'environnement de l'agent faute de token).
+
+---
+
+## Sécurité
+
+| Risque | Traitement |
+|---|---|
+| **Fuite du token Telegram** | Appel uniquement côté serveur ; token en variable d'environnement, jamais envoyé au navigateur ni journalisé (test unitaire) ; `.env` ignoré par git, seul `.env.example` (sans valeur) est versionné |
+| **Injection dans les messages Telegram** (HTML) | Tout texte saisi est échappé (`<`, `>`, `&`) avant l'envoi en mode HTML, message tronqué sous 4096 caractères (tests unitaires et E2E avec un `<script>`) |
+| **Spam des formulaires** | Champ piège invisible (succès simulé sans envoi), limitation de débit nginx par IP (très stricte sur `/api/contact` et `/api/reservation`), taille de corps limitée, validation stricte |
+| **CSRF** | Contrôle de l'en-tête `Origin` (ou `Sec-Fetch-Site`) sur les POST ; nginx transmet `X-Forwarded-Host` pour que la vérification fonctionne derrière le proxy |
+| **Manipulation du prix ou des conditions** | Le véhicule est relu en base ; prix, disponibilité, âge et permis minimum ne viennent jamais du formulaire (testé) |
+| **XSS** | React échappe les valeurs ; aucune injection de HTML brut ; les messages d'erreur transmis par redirection sont affichés comme du texte |
+| **Dépôt public** | Aucun secret versionné ; valeurs de CI factices |
+| **Conteneurs** | Image multi-étapes, utilisateur non-root, base **non publiée** sur l'hôte (sauf opt-in explicite pour le développement) |
+| **Force brute sur l'admin** | Payload verrouille un compte après 5 échecs (10 minutes, réglage par défaut) ; limitation de débit générale nginx |
+| **Dépendances** | `npm audit` : voir « Limites » |
+| **En-têtes HTTP** | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, version de nginx masquée |
+
+**À faire avant une mise en ligne** (non automatisé) :
+
+- **Créer immédiatement le compte administrateur.** Tant qu'aucun utilisateur n'existe, Payload propose à n'importe quel visiteur de `/admin` de créer le premier compte. Le déploiement doit donc être suivi sans délai de la création de l'admin (ou `/admin` restreint par IP / authentification nginx le temps de l'initialisation).
+- Servir en **HTTPS** (TLS n'est pas géré en local) puis ajouter HSTS.
+- Choisir un `PAYLOAD_SECRET` et un mot de passe de base uniques, et ne jamais réutiliser ceux de développement.
+
+---
+
+## Choix face aux points flous
+
+| Point flou du sujet | Décision |
+|---|---|
+| Images « non fournies » | Le serveur vérifie que le fichier existe ; sinon un visuel de remplacement (marque, modèle) s'affiche. Aucune image cassée. Dès qu'une vraie photo est déposée dans `public/`, elle est utilisée |
+| Pas de back-office voulu / Payload | Payload sert uniquement à éditer le catalogue ; les demandes ne sont ni stockées ni gérées (Telegram uniquement) |
+| Informations « qui ont un sens pour le client » | Tout le JSON est exploité : caution, km inclus, Crit'Air, équipements, et surtout les conditions (**âge minimum, années de permis**) et la **date de fin d'indisponibilité** |
+| Véhicule indisponible | Affiché avec sa date de retour ; on peut demander une réservation **à partir de** cette date, pas avant. Sans date de retour, la demande est refusée et le bouton masqué |
+| Conditions du conducteur | Le formulaire demande l'âge et les années de permis et refuse la demande qui ne respecte pas les conditions du véhicule, avec un message explicite |
+| Durée de location | Nombre de jours = date de retour − date de départ (minimum 1), maximum 90 jours. **Hypothèse à confirmer avec le client.** L'estimation est marquée « indicative » |
+| Réservation = demande, pas confirmation | Le texte l'indique ; aucun paiement, aucune réservation ferme |
+| Champs obligatoires | Contact : nom, e-mail, message (téléphone facultatif). Réservation : en plus, téléphone obligatoire (le gérant rappelle) |
+| Fuseau horaire | `Europe/Paris` pour « aujourd'hui » |
+| Langue | Site en français ; code et commits en anglais ; documentation en français |
+| Informations d'agence absentes | Aucune adresse, téléphone ni horaire inventés |
+| Que faire si Telegram échoue | Le visiteur est averti et invité à réessayer ou à téléphoner ; jamais de faux succès |
+| Bonus choisis | Tests automatisés + anti-spam, plus l'idée personnelle (édition du catalogue par le client). Le déploiement en ligne n'a pas été réalisé |
+
+---
+
+## Limites et suites
+
+**Limites connues**
+
+- **Aucune demande n'est stockée** : si Telegram est indisponible au moment de l'envoi, la demande est perdue (le visiteur en est averti).
+- **Anti-spam de niveau modéré** : un robot qui ignore le honeypot et reste sous la limite nginx peut passer. À renforcer (captcha respectueux de la vie privée) si du spam apparaît.
+- **Pas testé avec un vrai bot** dans l'environnement de développement de l'agent (pas de token) ; la couche Telegram est couverte par des tests unitaires et un faux serveur conforme à la documentation.
+- **Vulnérabilités de dépendances** : `npm audit --omit=dev` signale 8 alertes (3 élevées, 5 modérées) après correction de la critique (`dompurify`, forcé à la version corrigée par un `override`). Elles sont **transitives via Payload** : l'éditeur riche Lexical (`happy-dom`, côté administration) et des outils de développement (`esbuild`, `drizzle-kit`). Elles ne concernent pas les pages publiques ; la correction passe par une mise à jour de Payload.
+- **Pas de CSP ni de HSTS** ; TLS non géré localement.
+- **Migrations concurrentes** : avec plusieurs instances démarrant en même temps, les migrations pourraient s'exécuter simultanément (une seule instance aujourd'hui).
+- **Accessibilité non auditée** : lien d'évitement, repères sémantiques, libellés liés, annonces `aria-live`, focus visible, `prefers-reduced-motion` respecté ; pas de passage avec un lecteur d'écran ni d'audit automatisé.
+- **Pas de déploiement en ligne** ; images réelles à ajouter ; le premier compte administrateur doit être créé à la main.
+
+**Suites possibles**
+
+1. Déploiement (par exemple application conteneurisée + Supabase pour la base, ADR dédié), HTTPS et HSTS.
+2. Stocker les demandes (table Payload) pour ne rien perdre et permettre un suivi — en discuter avec le client, car cela réintroduit un back-office.
+3. Filtres et tri du catalogue, page détail par véhicule.
+4. Vraies photos via la médiathèque Payload ; données d'agence (adresse, horaires, téléphone) quand le client les fournit.
+5. Audit d'accessibilité, CSP, renforcement anti-spam.
+6. Mise en cache des pages catalogue avec invalidation depuis Payload.

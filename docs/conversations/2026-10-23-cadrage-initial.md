@@ -123,3 +123,13 @@ Demande : « Ouvre la PR et lance la code review », puis « installe GH et corr
   - un test ambigu (texte présent aussi dans le résumé du véhicule) → recherche limitée à la région du formulaire. Vérifié stable avec 3 répétitions (69 tests).
 - Vérifié : 39 tests unitaires, 23 tests E2E (×3 stables), lint, types.
 - Limites assumées : aucune demande n'est stockée (si Telegram échoue, elle est perdue) ; un robot qui ignore le honeypot et reste sous la limite nginx peut passer.
+
+## 12. PR #4 fusionnée, README complet
+
+- Demande : « Fusionne la PR et passe au README complet ». CI verte sur les 4 jobs avant la fusion.
+- **Audit de sécurité avant d'écrire la section Sécurité** (plutôt que d'affirmer de mémoire) :
+  - `npm audit --omit=dev` : 10 alertes dont 1 **critique** (`dompurify`, dans l'éditeur de code de l'admin Payload). `npm audit fix` sans effet ; un `override` sur `dompurify` (version corrigée) l'a supprimée ; lint, types, 39 tests unitaires et 23 E2E toujours verts. Il reste 8 alertes (3 élevées, 5 modérées), toutes transitives via Payload (Lexical/`happy-dom`, `esbuild`, `drizzle-kit`), sans correctif compatible : documentées dans « Limites ».
+  - Vérifié dans le code de Payload : verrouillage après 5 échecs de connexion pendant 10 minutes (réglage par défaut) ; vue « créer le premier utilisateur » ouverte à tout visiteur tant qu'aucun compte n'existe → **risque documenté** et consigne de créer l'admin immédiatement.
+- Fausse alerte de ma part : une série de tests E2E en échec venait d'une base recréée vide après un `docker compose down -v`, pas de l'override ; migration + seed puis 23/23.
+- **Honnêteté du README** : la section « ce que le candidat a vérifié » ne contient que des faits tirés de ce journal ; ce que seul le candidat sait (relecture ligne à ligne, tests manuels, envoi avec un vrai bot) est laissé en encadré **« À compléter »** plutôt qu'inventé.
+- **Constat à traiter** : avec `docker compose up`, le catalogue est vide tant que le seed n'a pas été lancé depuis l'hôte (le dossier `sujet/` n'est pas dans l'image). Documenté ; une amorce automatique au premier démarrage serait plus simple pour l'évaluateur (à décider, nouvel ADR).
