@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [19 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [20 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -36,6 +36,8 @@ Copier `.env.example` en `.env` (jamais commité — `.gitignore`) :
 | `TELEGRAM_BOT_TOKEN` | Token du bot Telegram | pour envoyer les messages |
 | `TELEGRAM_CHAT_ID` | Conversation ou groupe qui reçoit les messages | pour envoyer les messages |
 | `TELEGRAM_API_URL` | Remplace `https://api.telegram.org` (tests uniquement) | non |
+| `AUTO_SEED` | `true` (défaut dans Docker) : charge `vehicles.json` au démarrage si aucun véhicule n'existe | non |
+| `CATALOG_PATH` | Chemin du fichier chargé par l'amorce (défaut `sujet/vehicles.json`) | non |
 | `HTTP_PORT` | Port d'nginx sur la machine (défaut `8080`) | non |
 | `DATABASE_URI`, `DB_PORT` | Développement hors Docker uniquement | non |
 
@@ -58,7 +60,9 @@ docker compose up -d --build      # PostgreSQL + application + nginx
 
 Le site est sur http://localhost:8080 et l'administration sur http://localhost:8080/admin. Les migrations s'appliquent automatiquement au démarrage du serveur.
 
-Pour charger le catalogue, lancer le seed depuis l'hôte (le dossier `sujet/` n'est pas dans l'image) en pointant vers la base — voir « Développement local » ci-dessous avec le fichier `docker-compose.dev.yml`, qui publie la base sur `127.0.0.1:5433`. Puis **créer le compte administrateur sur `/admin` immédiatement** (voir « Sécurité »).
+Au **premier démarrage**, le catalogue (`vehicles.json`) est chargé automatiquement si la base ne contient encore aucun véhicule ([ADR-0020](docs/adr/0020-amorce-automatique-du-catalogue-au-demarrage.md)) : `docker compose up` suffit. Ensuite **créer le compte administrateur sur `/admin` immédiatement** (voir « Sécurité »).
+
+Une fois le catalogue du client en place, mettre `AUTO_SEED=false` dans `.env` : sinon, si tous les véhicules étaient supprimés, un redémarrage rechargerait le catalogue d'origine.
 
 ### Développement local (hors Docker)
 
@@ -67,7 +71,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db   # base
 cp .env.example .env              # DATABASE_URI pointe vers cette base
 npm install
 npm run migrate                   # applique les migrations (le schéma n'est jamais poussé automatiquement)
-npm run seed                      # charge sujet/vehicles.json — idempotent, ne modifie pas le fichier
+npm run seed                      # charge sujet/vehicles.json — idempotent, ne modifie pas le fichier (hors Docker, pas d'amorce automatique)
 npm run dev                       # http://localhost:3000 — admin : /admin
 ```
 
@@ -124,7 +128,7 @@ Principes : composants serveur par défaut (seuls les formulaires et l'animation
 
 ### Données
 
-`sujet/vehicles.json` est la **source de départ** ; il n'est jamais modifié. Le script `npm run seed` le valide à l'exécution puis crée ou met à jour (par `slug`) la collection `vehicles` et le global `agency` de Payload ([ADR-0013](docs/adr/0013-modele-vehicules-et-import-depuis-le-json.md)). Tous les champs sont conservés, y compris ceux qui ne concernent que certains véhicules : `age_minimum`, `permis_minimum_annees` et `indisponible_jusqu_au` sont des **conditions de location** affichées au client. Une fois chargé, c'est Payload qui fait foi : le gérant modifie le catalogue dans `/admin`.
+`sujet/vehicles.json` est la **source de départ** ; il n'est jamais modifié. Le script `npm run seed` (ou l'amorce automatique de Docker, [ADR-0020](docs/adr/0020-amorce-automatique-du-catalogue-au-demarrage.md)) le valide à l'exécution puis crée ou met à jour (par `slug`) la collection `vehicles` et le global `agency` de Payload ([ADR-0013](docs/adr/0013-modele-vehicules-et-import-depuis-le-json.md)). Tous les champs sont conservés, y compris ceux qui ne concernent que certains véhicules : `age_minimum`, `permis_minimum_annees` et `indisponible_jusqu_au` sont des **conditions de location** affichées au client. Une fois chargé, c'est Payload qui fait foi : le gérant modifie le catalogue dans `/admin`.
 
 Les pages lisant le catalogue sont rendues **à chaque requête** : le gérant voit ses changements immédiatement et le build n'a pas besoin de base de données ([ADR-0017](docs/adr/0017-interface-catalogue-rendu-serveur-et-css-simple.md)).
 
@@ -248,6 +252,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 - **Pas de CSP ni de HSTS** ; TLS non géré localement.
 - **Migrations concurrentes** : avec plusieurs instances démarrant en même temps, les migrations pourraient s'exécuter simultanément (une seule instance aujourd'hui).
 - **Accessibilité non auditée** : lien d'évitement, repères sémantiques, libellés liés, annonces `aria-live`, focus visible, `prefers-reduced-motion` respecté ; pas de passage avec un lecteur d'écran ni d'audit automatisé.
+- **Amorce automatique** : tant que `AUTO_SEED=true`, une collection vidée puis un redémarrage rechargent le catalogue d'origine ; deux instances démarrant en même temps pourraient l'exécuter deux fois (sans doublon, le seed est idempotent).
 - **Pas de déploiement en ligne** ; images réelles à ajouter ; le premier compte administrateur doit être créé à la main.
 
 **Suites possibles**

@@ -75,7 +75,6 @@ React + TypeScript (strict) · Next.js · Payload CMS (headless, gestion utilisa
 - Le `README.md` documente la stack, l'outillage (linter, tests, Docker), l'installation, les variables d'environnement et les sections exigées par le sujet. Le garder synchronisé avec les ADR.
 
 ## Points ouverts (chacun aura son ADR)
-- Base de données Payload (ex. PostgreSQL en conteneur) et chargement de `vehicles.json` dans Payload sans modifier le fichier.
 - Nginx : nécessaire ou non selon le déploiement (rate limiting, TLS, cache des assets).
-- Anti-spam, déploiement en ligne, choix des 1 ou 2 bonus.
+- Déploiement en ligne (non réalisé) ; bonus retenus : tests automatisés + anti-spam.
 - Le sujet dit « sans back-office à gérer » : Payload ajoute une interface d'admin — à justifier dans l'ADR dédié.
