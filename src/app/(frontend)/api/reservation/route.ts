@@ -1,3 +1,4 @@
+import { todayInMarseille } from '@/lib/dates'
 import { HONEYPOT_FIELD, readSubmission } from '@/lib/forms/request'
 import { respondFailure, respondInvalid, respondSent } from '@/lib/forms/respond'
 import { validateReservation } from '@/lib/forms/validation'
@@ -5,10 +6,6 @@ import { sendTelegramMessage } from '@/lib/telegram/client'
 import { formatReservationMessage } from '@/lib/telegram/messages'
 import { getVehicleName } from '@/lib/vehicles/presentation'
 import { getVehicleBySlug } from '@/lib/vehicles/queries'
-
-/** Today's date (YYYY-MM-DD) in the agency's timezone. */
-const todayInMarseille = (): string =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date())
 
 export async function POST(request: Request): Promise<Response> {
   const submission = await readSubmission(request)
