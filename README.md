@@ -3,7 +3,7 @@
 Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — test technique LEMDINT, réalisé avec un agent IA (Claude Code).
 Sujet et données : [`sujet/`](sujet/).
 
-> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Docker, le modèle de données véhicules, le seed et la CI sont en place. Les pages F1 à F4, GSAP et les tests E2E restent à faire. Les sections ci-dessous sont mises à jour au fil des commits.
+> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Docker, le modèle de données véhicules, le seed et la CI sont en place. F1 (accueil) et F2 (catalogue) sont en place, avec GSAP et les tests E2E. Les formulaires F3 et F4 (Telegram) restent à faire. Les sections ci-dessous sont mises à jour au fil des commits.
 
 ## Stack
 
@@ -16,7 +16,8 @@ Sujet et données : [`sujet/`](sujet/).
 | Base de données | PostgreSQL (proche de Supabase : hébergé, open source et économique) | [ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md) |
 | Données | Collection `vehicles` + global `agency`, seed depuis `vehicles.json` | [ADR-0013](docs/adr/0013-modele-vehicules-et-import-depuis-le-json.md) |
 | Migrations | Versionnées dans `src/migrations/` | [ADR-0015](docs/adr/0015-versionnement-des-migrations-de-base-de-donnees.md) |
-| Animations | GSAP (présentation des véhicules, à venir) | [ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md) |
+| Interface | Rendu serveur à la requête, CSS simple, visuel de remplacement | [ADR-0017](docs/adr/0017-interface-catalogue-rendu-serveur-et-css-simple.md) |
+| Animations | GSAP (apparition au scroll, désactivée si `prefers-reduced-motion`) | [ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md) |
 | CI | GitHub Actions | [ADR-0016](docs/adr/0016-integration-continue-github-actions.md) |
 | Infra | Docker Compose (db + app + nginx reverse proxy, rate limiting) | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [ADR-0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [ADR-0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
 | Notifications | Telegram (API Bot) — à décider | à venir |
@@ -57,7 +58,7 @@ npm run migrate:status        # état des migrations
 npm run migrate:create -- <nom>   # après un changement de schéma
 ```
 
-À venir : `npm run test:e2e` (Playwright).
+`npm run test:e2e` : tests Playwright du dossier `e2e/` (base migrée et seedée requise ; le serveur est construit et lancé automatiquement).
 
 ## Migrations de base de données
 
@@ -81,7 +82,7 @@ Chaque changement de schéma = une migration commitée dans la même PR (`src/mi
 sujet/              sujet.pdf et vehicles.json (ne pas modifier)
 docs/adr/           décisions d'architecture
 docs/conversations/ journal des échanges avec l'IA
-e2e/                tests Playwright (à venir)
+e2e/                tests Playwright (accueil, catalogue, sans JavaScript, mouvement réduit)
 CLAUDE.md           règles du projet pour l'agent
 ```
 

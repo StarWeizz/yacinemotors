@@ -1,15 +1,36 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { SiteFooter } from '@/components/SiteFooter'
+import { SiteHeader } from '@/components/SiteHeader'
+import { getAgency } from '@/lib/vehicles/queries'
+import './globals.css'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Yacine Motors — Location de véhicules à Marseille',
-  description: 'Agence de location de véhicules à Marseille.',
+  title: {
+    default: 'Yacine Motors — Location de véhicules à Marseille',
+    template: '%s · Yacine Motors',
+  },
+  description:
+    'Yacine Motors, agence de location de véhicules à Marseille : citadines, compactes, SUV et sportives.',
 }
 
-const Layout = ({ children }: { children: ReactNode }) => (
-  <html lang="fr">
-    <body>{children}</body>
-  </html>
-)
+const Layout = async ({ children }: { children: ReactNode }) => {
+  const agency = await getAgency()
+
+  return (
+    <html lang="fr">
+      <body>
+        <a className="skip-link" href="#contenu">
+          Aller au contenu
+        </a>
+        <SiteHeader />
+        <main id="contenu">{children}</main>
+        <SiteFooter agencyName={agency.name} city={agency.city} />
+      </body>
+    </html>
+  )
+}
 
 export default Layout

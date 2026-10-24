@@ -92,3 +92,18 @@ Demande : « Ouvre la PR et lance la code review », puis « installe GH et corr
 - **Incident machine** : disque plein pendant les builds (cache Docker de 7,7 Go) ; seul le cache de build a été purgé, volumes et images conservés.
 - Vérifié : 10 véhicules insérés puis mis à jour sans doublon (seed idempotent), champs optionnels corrects en base, `vehicles.json` non modifié, migrations appliquées sur base vierge dans Docker.
 - Non vérifié : le workflow CI n'a pas encore tourné (première exécution sur GitHub).
+
+## 10. PR #2 fusionnée, F1 et F2
+
+- Demande : « Fusionne la PR et passe à F1 et F2 ». Règle de CLAUDE.md respectée : la fusion n'a eu lieu qu'une fois la CI entièrement verte (les trois jobs, dont le build Docker de ~6 min).
+- `AGENTS.md` (généré par Next) impose de lire la doc embarquée avant de coder. Lecture du chapitre sur le cache : le mode *Cache Components* n'est pas activé.
+- **Décision de l'IA, argumentée dans l'ADR-0017** : pages en `force-dynamic` parce que le build (Docker, CI) n'a pas de base de données et que le gérant doit voir ses modifications tout de suite. Vérifié : `next build` passe avec une base inexistante.
+- Images absentes : le serveur vérifie l'existence du fichier (avec contrôle de chemin) et affiche sinon un visuel de remplacement ; aucune image cassée (testé en E2E).
+- Contenu du site : l'IA n'a **inventé aucune information** sur l'agence (pas d'adresse, de téléphone ni d'horaires, absents des données) ; l'accueil n'affiche que des chiffres calculés à partir du catalogue.
+- GSAP : isolé dans `Reveal` (composant client), contenu visible sans JavaScript, désactivé avec `prefers-reduced-motion`. Les tests E2E vérifient les deux cas.
+- Erreurs de l'IA corrigées en route :
+  - des espaces insécables littéraux dans un test ont fait échouer ESLint (`no-irregular-whitespace`) → échappements `\u00a0` ;
+  - `pkill -f "next dev"` a tué son propre shell (la commande contenait ce motif) → motif entre crochets ;
+  - `next start` est incompatible avec `output: standalone` : les tests passaient, mais sans garantie que le CSS/JS soit servi → le script `start` copie `public` et `.next/static` puis lance `server.js` ; vérifié (CSS et JS en 200).
+- Vérifié : 15 tests unitaires, 9 tests E2E, lint, types, build sans base.
+- Non fait volontairement : filtres/tri, page détail, boutons de réservation (F4), formulaire de contact (F3).
