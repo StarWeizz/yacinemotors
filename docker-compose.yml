@@ -22,6 +22,7 @@ services:
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:?set PAYLOAD_SECRET in .env}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      AUTO_SEED: ${AUTO_SEED:-true}
     depends_on:
       db:
         condition: service_healthy
