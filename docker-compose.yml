@@ -20,6 +20,8 @@ services:
     environment:
       DATABASE_URI: postgres://${POSTGRES_USER:-yacinemotors}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-yacinemotors}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:?set PAYLOAD_SECRET in .env}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
     depends_on:
       db:
         condition: service_healthy
