@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Vehicle } from '@/payload-types'
 import { formatKilometers, formatPrice } from '@/lib/format'
 import { getAvailabilityLabel, getConditions, getVehicleName } from '@/lib/vehicles/presentation'
@@ -92,6 +93,15 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           {formatKilometers(vehicle.includedKmPerDay)} inclus par jour · Caution{' '}
           {formatPrice(vehicle.deposit)}
         </p>
+        {(vehicle.available !== false || vehicle.unavailableUntil) && (
+          <Link
+            className="button"
+            href={`/vehicules/${encodeURIComponent(vehicle.slug)}/reservation`}
+            aria-label={`Demander une réservation : ${getVehicleName(vehicle)}`}
+          >
+            Demander une réservation
+          </Link>
+        )}
       </div>
     </article>
   )

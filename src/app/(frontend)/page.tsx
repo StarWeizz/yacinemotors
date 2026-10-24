@@ -28,6 +28,9 @@ const HomePage = async () => {
             <Link className="button" href="/vehicules">
               Parcourir le catalogue
             </Link>
+            <Link className="button button--ghost" href="/contact">
+              Nous contacter
+            </Link>
           </div>
         </div>
       </section>
