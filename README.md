@@ -3,7 +3,7 @@
 Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — test technique LEMDINT, réalisé avec un agent IA (Claude Code).
 Sujet et données : [`sujet/`](sujet/).
 
-> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Docker, le modèle de données véhicules, le seed et la CI sont en place. F1 (accueil) et F2 (catalogue) sont en place, avec GSAP et les tests E2E. Les formulaires F3 et F4 (Telegram) restent à faire. Les sections ci-dessous sont mises à jour au fil des commits.
+> **État d'avancement** : le socle Next.js + Payload (PostgreSQL) est en place et fonctionne (accueil, admin Payload, API). Docker, le modèle de données véhicules, le seed et la CI sont en place. F1 à F4 sont en place : accueil, catalogue, formulaire de contact et demande de réservation, avec envoi sur Telegram, GSAP et tests E2E. Restent à compléter : sections du sujet (sécurité, points flous, limites), déploiement. Les sections ci-dessous sont mises à jour au fil des commits.
 
 ## Stack
 
@@ -14,6 +14,8 @@ Sujet et données : [`sujet/`](sujet/).
 | Qualité | ESLint, **zéro `any`** | [ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md) |
 | Tests | Vitest (basiques) + Playwright (E2E, dossier `e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
 | Base de données | PostgreSQL (proche de Supabase : hébergé, open source et économique) | [ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md) |
+| Telegram | API Bot `sendMessage` appelée côté serveur, token jamais exposé | [ADR-0018](docs/adr/0018-integration-telegram-bot-api-cote-serveur.md) |
+| Formulaires | Validation serveur, honeypot, contrôle d'origine, fonctionnent sans JavaScript | [ADR-0019](docs/adr/0019-formulaires-validation-anti-spam-amelioration-progressive.md) |
 | Données | Collection `vehicles` + global `agency`, seed depuis `vehicles.json` | [ADR-0013](docs/adr/0013-modele-vehicules-et-import-depuis-le-json.md) |
 | Migrations | Versionnées dans `src/migrations/` | [ADR-0015](docs/adr/0015-versionnement-des-migrations-de-base-de-donnees.md) |
 | Interface | Rendu serveur à la requête, CSS simple, visuel de remplacement | [ADR-0017](docs/adr/0017-interface-catalogue-rendu-serveur-et-css-simple.md) |
@@ -27,6 +29,14 @@ Sujet et données : [`sujet/`](sujet/).
 - ESLint avec `typescript-eslint`, `react-hooks`, `react-refresh`.
 - `@typescript-eslint/no-explicit-any` et `ban-ts-comment` en **erreur** : pas de `any`, pas de `@ts-ignore`.
 - `npm run lint` et la compilation TypeScript doivent passer avant chaque commit.
+
+## Configuration de Telegram
+
+1. Créer un bot avec [@BotFather](https://t.me/BotFather) (`/newbot`) et récupérer le **token**.
+2. Écrire au bot (ou l'ajouter à un groupe), puis ouvrir `https://api.telegram.org/bot<token>/getUpdates` pour lire le **chat id** (`message.chat.id`).
+3. Renseigner `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID` dans `.env` (jamais commité).
+
+Brancher un autre bot (celui de l'évaluateur) = changer ces deux variables. Sans elles, les formulaires répondent « le message n'a pas pu être envoyé » au lieu de simuler un envoi. Les tests n'appellent jamais la vraie API : un faux serveur Telegram (`e2e/support/telegram-mock.mjs`) est lancé avec Playwright.
 
 ## Lancement avec Docker (recommandé)
 
@@ -82,7 +92,7 @@ Chaque changement de schéma = une migration commitée dans la même PR (`src/mi
 sujet/              sujet.pdf et vehicles.json (ne pas modifier)
 docs/adr/           décisions d'architecture
 docs/conversations/ journal des échanges avec l'IA
-e2e/                tests Playwright (accueil, catalogue, sans JavaScript, mouvement réduit)
+e2e/                tests Playwright (pages, formulaires, sans JavaScript, faux Telegram)
 CLAUDE.md           règles du projet pour l'agent
 ```
 
