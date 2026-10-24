@@ -107,3 +107,19 @@ Demande : « Ouvre la PR et lance la code review », puis « installe GH et corr
   - `next start` est incompatible avec `output: standalone` : les tests passaient, mais sans garantie que le CSS/JS soit servi → le script `start` copie `public` et `.next/static` puis lance `server.js` ; vérifié (CSS et JS en 200).
 - Vérifié : 15 tests unitaires, 9 tests E2E, lint, types, build sans base.
 - Non fait volontairement : filtres/tri, page détail, boutons de réservation (F4), formulaire de contact (F3).
+
+## 11. PR #3 fusionnée, F3 et F4 (Telegram)
+
+- Demande : « Fusionne la PR et passe à F3 et F4 ». CI verte sur les 4 jobs (dont E2E, 11 min) avant la fusion.
+- **Documentation officielle lue** (le sujet le demande) : `sendMessage`, texte de 1 à 4096 caractères, `parse_mode: HTML` avec échappement obligatoire de `<`, `>`, `&`, `retry_after` en cas de limitation. Le premier essai avec l'outil de lecture web n'a lu que le début de la page (580 000 caractères) ; l'IA a donc téléchargé la page et extrait elle-même les sections voulues plutôt que de deviner.
+- **Décisions** : ADR-0018 (Telegram côté serveur) et ADR-0019 (formulaires natifs fonctionnant sans JavaScript, validation serveur, honeypot, contrôle d'origine).
+- **Point flou tranché, à confirmer avec le client** : le nombre de jours = date de retour − date de départ (minimum 1). L'estimation est marquée « indicative » dans le message.
+- **Initiative de l'IA liée au sujet** (« toutes ses informations ont un sens pour le client ») : le formulaire de réservation demande l'âge et les années de permis et refuse la demande si elles ne respectent pas les conditions du véhicule ; une date de départ avant la fin d'indisponibilité est refusée. Prix, conditions et disponibilité sont relus en base : un prix envoyé par le client est ignoré (testé).
+- **Bug évité grâce à la réflexion sur nginx** : `proxy_set_header Host $host` supprime le port, ce qui aurait fait échouer le contrôle d'origine derrière nginx (`localhost:8080` ≠ `localhost`). Ajout de `X-Forwarded-Host $http_host`.
+- **Erreurs de l'IA corrigées en route** :
+  - une regex de caractères de contrôle refusée par ESLint (`no-control-regex`) → filtre sur les codes de caractère ;
+  - 12 tests E2E en échec : un ancien serveur de test occupait encore le port 3000 et Playwright l'avait réutilisé (build sans les nouvelles pages). Vérifié que le processus appartenait bien au projet avant de l'arrêter ;
+  - deux tests mal écrits (un e-mail invalide arrêté par la validation native du navigateur ; un message de « trop court » qui faisait exactement 10 caractères) → données corrigées, pas le code ;
+  - un test ambigu (texte présent aussi dans le résumé du véhicule) → recherche limitée à la région du formulaire. Vérifié stable avec 3 répétitions (69 tests).
+- Vérifié : 39 tests unitaires, 23 tests E2E (×3 stables), lint, types.
+- Limites assumées : aucune demande n'est stockée (si Telegram échoue, elle est perdue) ; un robot qui ignore le honeypot et reste sous la limite nginx peut passer.
