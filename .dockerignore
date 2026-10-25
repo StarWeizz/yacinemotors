@@ -6,6 +6,7 @@ node_modules
 .env.*
 !.env.example
 docs
-sujet
+sujet/*
+!sujet/vehicles.json
 e2e
 *.tsbuildinfo

@@ -25,6 +25,8 @@ RUN addgroup -S app && adduser -S app -G app
 COPY --from=builder --chown=app:app /app/public ./public
 COPY --from=builder --chown=app:app /app/.next/standalone ./
 COPY --from=builder --chown=app:app /app/.next/static ./.next/static
+# Initial catalog for the optional auto-seed (ADR-0020); the rest of sujet/ stays out of the image.
+COPY --chown=app:app sujet/vehicles.json ./sujet/vehicles.json
 USER app
 EXPOSE 3000
 CMD ["node", "server.js"]

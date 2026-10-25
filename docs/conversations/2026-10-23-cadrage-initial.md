@@ -133,3 +133,13 @@ Demande : « Ouvre la PR et lance la code review », puis « installe GH et corr
 - Fausse alerte de ma part : une série de tests E2E en échec venait d'une base recréée vide après un `docker compose down -v`, pas de l'override ; migration + seed puis 23/23.
 - **Honnêteté du README** : la section « ce que le candidat a vérifié » ne contient que des faits tirés de ce journal ; ce que seul le candidat sait (relecture ligne à ligne, tests manuels, envoi avec un vrai bot) est laissé en encadré **« À compléter »** plutôt qu'inventé.
 - **Constat à traiter** : avec `docker compose up`, le catalogue est vide tant que le seed n'a pas été lancé depuis l'hôte (le dossier `sujet/` n'est pas dans l'image). Documenté ; une amorce automatique au premier démarrage serait plus simple pour l'évaluateur (à décider, nouvel ADR).
+
+## 13. Question de l'utilisateur sur le lancement, puis amorce automatique
+
+- **Lancement local** : l'utilisateur demande s'il faut `npm run dev` et Docker pour PostgreSQL. Recommandation : Docker uniquement pour la base (`docker-compose.dev.yml`), `npm run dev` pour l'app (rechargement à chaud).
+- **« Rien ne se charge »** : diagnostic sans rien supposer — `docker ps`, ports en écoute et `curl` sur `/`, `/vehicules`, `/contact`, `/admin` (tous en 200, 10 véhicules, CSS servi, logs sans erreur). Cause : l'utilisateur ouvrait le port 8000 au lieu de 8080. Aucun défaut de code.
+- Demande : « Fusionne la PR et ajoute l'amorce automatique ». PR #5 fusionnée (CI verte).
+- **Amorce automatique** (ADR-0020) : au démarrage, si `AUTO_SEED=true` et qu'aucun véhicule n'existe, le catalogue est chargé depuis `vehicles.json`, embarqué seul dans l'image. La logique de seed a été extraite dans un module partagé avec `npm run seed` (aucun doublon de code) ; elle est typée sur la collection, sans cast ni `any`.
+- Choix de sécurité de l'IA : l'amorce ne s'exécute que si la collection est vide (jamais d'écrasement des modifications du gérant) ; une erreur d'amorce est journalisée sans faire tomber le site ; seul `vehicles.json` est copié dans l'image, pas le reste de `sujet/`.
+- Risque assumé et documenté : si le gérant supprime tous les véhicules et que l'app redémarre avec `AUTO_SEED=true`, le catalogue d'origine revient → mettre `AUTO_SEED=false` en production.
+- **Vérifié dans Docker, volumes supprimés puis reconstruction complète** : 10 véhicules créés au premier démarrage (`Initial catalog loaded`), `/vehicules` affiche 10 cartes ; après `docker compose restart app` le log indique `Catalog already present, auto-seed skipped` et le total reste 10 (pas de doublon, pas de rechargement) ; `ls sujet` dans le conteneur ne montre que `vehicles.json` ; `git status sujet` propre. 43 tests unitaires, lint et types verts.
