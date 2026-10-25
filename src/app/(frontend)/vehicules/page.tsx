@@ -1,6 +1,14 @@
 import type { Metadata } from 'next'
+import { CatalogFilters } from '@/components/CatalogFilters'
 import { Reveal } from '@/components/Reveal'
 import { VehicleCard } from '@/components/VehicleCard'
+import {
+  applyFilters,
+  getChoices,
+  hasActiveFilters,
+  parseFilters,
+  type SearchParams,
+} from '@/lib/vehicles/catalog'
 import { getVehicles } from '@/lib/vehicles/queries'
 
 export const metadata: Metadata = {
@@ -8,22 +16,41 @@ export const metadata: Metadata = {
   description: 'Tous les véhicules de Yacine Motors : tarifs, caution, kilomètres inclus et conditions.',
 }
 
-const CatalogPage = async () => {
-  const vehicles = await getVehicles()
+type Props = {
+  searchParams: Promise<SearchParams>
+}
+
+const CatalogPage = async ({ searchParams }: Props) => {
+  const all = await getVehicles()
+  const choices = getChoices(all)
+  const filters = parseFilters(await searchParams, choices)
+  const vehicles = applyFilters(all, filters)
+  const filtered = hasActiveFilters(filters)
 
   return (
     <div className="container">
       <header className="page-title">
         <h1>Catalogue</h1>
         <p>
-          {vehicles.length} véhicules. Les prix s&apos;entendent par jour ; la caution et les
-          conditions du conducteur sont indiquées sur chaque fiche.
+          Les prix s&apos;entendent par jour ; la caution et les conditions du conducteur sont
+          indiquées sur chaque fiche.
         </p>
       </header>
 
+      {all.length > 0 ? <CatalogFilters choices={choices} filters={filters} /> : null}
+
       <Reveal className="section">
+        <p className="results" role="status" aria-live="polite">
+          {filtered
+            ? `${vehicles.length} véhicule${vehicles.length > 1 ? 's' : ''} sur ${all.length}`
+            : `${all.length} véhicule${all.length > 1 ? 's' : ''}`}
+        </p>
         {vehicles.length === 0 ? (
-          <p>Aucun véhicule n&apos;est disponible pour le moment.</p>
+          <p>
+            {filtered
+              ? 'Aucun véhicule ne correspond à ces critères. Essayez de les assouplir ou réinitialisez les filtres.'
+              : "Aucun véhicule n'est disponible pour le moment."}
+          </p>
         ) : (
           <ul className="grid">
             {vehicles.map((vehicle) => (
