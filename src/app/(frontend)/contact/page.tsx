@@ -18,13 +18,13 @@ const ContactPage = async ({ searchParams }: ContactPageProps) => {
   const { envoye, erreur } = await searchParams
 
   return (
-    <div className="container">
+    <div className="container-x">
       <header className="page-title">
         <h1>Contact</h1>
         <p>Une question sur un véhicule, une durée, un tarif ? Écrivez-nous, votre message arrive directement à l&apos;agence.</p>
       </header>
 
-      <section className="section form-wrap" aria-label="Formulaire de contact">
+      <section className="section-space max-w-[720px]" aria-label="Formulaire de contact">
         <PageNotice sent={envoye} error={erreur} successMessage={SUCCESS} />
         <EnhancedForm action="/api/contact" submitLabel="Envoyer le message" successMessage={SUCCESS}>
           <Field name="name" label="Nom" required autoComplete="name" maxLength={100} />
