@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import type { Vehicle } from '@/payload-types'
 import { formatKilometers, formatPrice } from '@/lib/format'
-import { getAvailabilityLabel, getConditions, getVehicleName } from '@/lib/vehicles/presentation'
+import { getConditions, getVehicleName } from '@/lib/vehicles/presentation'
+import { AvailabilityBadge } from './AvailabilityBadge'
+import { PriceAmount } from './PriceAmount'
 import { VehicleVisual } from './VehicleVisual'
 
 type VehicleCardProps = {
@@ -13,89 +15,89 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
   const equipment = vehicle.equipment ?? []
 
   return (
-    <article className="card">
-      <div className="card__visual">
+    <article className="group flex h-full flex-col border-t border-ink">
+      <div className="mt-[1.1rem] aspect-[4/3] overflow-hidden bg-pearl">
         <VehicleVisual vehicle={vehicle} />
       </div>
-      <div className="card__body">
-        <div className="card__top">
+      <div className="flex flex-1 flex-col gap-[1.1rem] pt-5">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="card__title">{getVehicleName(vehicle)}</h3>
-            <p className="card__version">
+            <h3 className="m-0 text-3xl">{getVehicleName(vehicle)}</h3>
+            <p className="mt-1 mb-0 text-sm text-steel">
               {vehicle.version} · {vehicle.year}
             </p>
           </div>
-          <span className={`badge ${vehicle.available ? 'badge--ok' : 'badge--off'}`}>
-            {getAvailabilityLabel(vehicle)}
-          </span>
+          <AvailabilityBadge vehicle={vehicle} />
         </div>
 
-        <dl className="specs">
-          <div>
-            <dt>Catégorie</dt>
-            <dd>{vehicle.category}</dd>
+        <dl className="m-0 grid grid-cols-2 gap-x-6 text-sm">
+          <div className="border-t border-mist py-2">
+            <dt className="text-[0.78rem] text-steel">Catégorie</dt>
+            <dd className="m-0">{vehicle.category}</dd>
           </div>
-          <div>
-            <dt>Carburant</dt>
-            <dd>{vehicle.fuel}</dd>
+          <div className="border-t border-mist py-2">
+            <dt className="text-[0.78rem] text-steel">Carburant</dt>
+            <dd className="m-0">{vehicle.fuel}</dd>
           </div>
-          <div>
-            <dt>Boîte</dt>
-            <dd>{vehicle.gearbox}</dd>
+          <div className="border-t border-mist py-2">
+            <dt className="text-[0.78rem] text-steel">Boîte</dt>
+            <dd className="m-0">{vehicle.gearbox}</dd>
           </div>
-          <div>
-            <dt>Puissance</dt>
-            <dd>
+          <div className="border-t border-mist py-2">
+            <dt className="text-[0.78rem] text-steel">Puissance</dt>
+            <dd className="m-0">
               {vehicle.powerHp} ch · {vehicle.drivetrain}
             </dd>
           </div>
-          <div>
-            <dt>Places / portes</dt>
-            <dd>
+          <div className="border-t border-mist py-2">
+            <dt className="text-[0.78rem] text-steel">Places / portes</dt>
+            <dd className="m-0">
               {vehicle.seats} places · {vehicle.doors} portes
             </dd>
           </div>
-          <div>
-            <dt>Kilométrage</dt>
-            <dd>{formatKilometers(vehicle.mileage)}</dd>
+          <div className="border-t border-mist py-2">
+            <dt className="text-[0.78rem] text-steel">Kilométrage</dt>
+            <dd className="m-0">{formatKilometers(vehicle.mileage)}</dd>
           </div>
-          <div>
-            <dt>Couleur</dt>
-            <dd>{vehicle.color}</dd>
+          <div className="border-t border-mist py-2">
+            <dt className="text-[0.78rem] text-steel">Couleur</dt>
+            <dd className="m-0">{vehicle.color}</dd>
           </div>
-          <div>
-            <dt>Crit&apos;Air</dt>
-            <dd>{vehicle.critAir}</dd>
+          <div className="border-t border-mist py-2">
+            <dt className="text-[0.78rem] text-steel">Crit&apos;Air</dt>
+            <dd className="m-0">{vehicle.critAir}</dd>
           </div>
         </dl>
 
         {equipment.length > 0 && (
-          <ul className="chips" aria-label="Équipements">
+          <ul className="m-0 list-none p-0 text-sm text-steel" aria-label="Équipements">
             {equipment.map(({ name, id }) => (
-              <li key={id ?? name}>{name}</li>
+              <li key={id ?? name} className="inline not-last:after:content-[',_']">
+                {name}
+              </li>
             ))}
           </ul>
         )}
 
         {conditions.length > 0 && (
-          <ul className="conditions" aria-label="Conditions de location">
+          <ul className="m-0 list-none border-l border-ink py-3 pl-4 text-sm" aria-label="Conditions de location">
             {conditions.map((condition) => (
               <li key={condition}>{condition}</li>
             ))}
           </ul>
         )}
 
-        <p className="price">
-          <strong>{formatPrice(vehicle.pricePerDay)}</strong>
-          <small>/ jour</small>
+        <p className="mt-auto mb-0 flex flex-wrap items-baseline gap-2 pt-2">
+          <PriceAmount euros={vehicle.pricePerDay} />
+          <small className="text-sm text-steel">/ jour</small>
         </p>
-        <p className="terms">
+        <p className="m-0 text-sm text-steel">
           {formatKilometers(vehicle.includedKmPerDay)} inclus par jour · Caution{' '}
           {formatPrice(vehicle.deposit)}
         </p>
         {(vehicle.available !== false || vehicle.unavailableUntil) && (
           <Link
-            className="button"
+            className="button self-start"
             href={`/vehicules/${encodeURIComponent(vehicle.slug)}/reservation`}
             aria-label={`Demander une réservation : ${getVehicleName(vehicle)}`}
           >

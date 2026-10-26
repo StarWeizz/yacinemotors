@@ -41,8 +41,8 @@ const asOptions = (values: string[]) => values.map((value) => ({ value, label: v
  * it works without JavaScript. The server re-renders the list on submit.
  */
 export const CatalogFilters = ({ choices, filters }: Props) => (
-  <form className="filters" method="get" action="/vehicules" aria-label="Filtrer et trier le catalogue">
-    <div className="filters__grid">
+  <form className="mt-4 flex flex-col gap-6 border-t border-ink border-b-line border-b py-6" method="get" action="/vehicules" aria-label="Filtrer et trier le catalogue">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-5">
       <Select id="f-categorie" name="categorie" label="Catégorie" value={filters.category}
         options={asOptions(choices.categories)} emptyLabel="Toutes" />
       <Select id="f-carburant" name="carburant" label="Carburant" value={filters.fuel}
@@ -57,14 +57,14 @@ export const CatalogFilters = ({ choices, filters }: Props) => (
       </div>
       <Select id="f-tri" name="tri" label="Trier par" value={filters.sort} options={SORT_OPTIONS} />
     </div>
-    <div className="filters__actions">
-      <label className="filters__check">
-        <input type="checkbox" name="disponibles" value="1" defaultChecked={filters.availableOnly} />
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+      <label className="mr-auto flex items-center gap-2.5 text-sm">
+        <input className="size-4 accent-ink" type="checkbox" name="disponibles" value="1" defaultChecked={filters.availableOnly} />
         Disponibles uniquement
       </label>
       <button type="submit" className="button">Appliquer</button>
       {hasActiveFilters(filters) || filters.sort !== 'defaut' ? (
-        <Link href="/vehicules" className="filters__reset">Réinitialiser</Link>
+        <Link href="/vehicules" className="text-sm text-steel">Réinitialiser</Link>
       ) : null}
     </div>
   </form>

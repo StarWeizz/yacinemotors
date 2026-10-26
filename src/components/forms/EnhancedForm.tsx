@@ -75,9 +75,9 @@ export function EnhancedForm({ action, submitLabel, successMessage, children }: 
           </label>
         </div>
 
-        <div role="status" aria-live="polite" className="form__status">
-          {status.kind === 'sent' && <p className="notice notice--ok">{successMessage}</p>}
-          {status.kind === 'error' && <p className="notice notice--error">{status.message}</p>}
+        <div role="status" aria-live="polite" className="empty:hidden">
+          {status.kind === 'sent' && <p className="notice m-0">{successMessage}</p>}
+          {status.kind === 'error' && <p className="notice notice-error m-0">{status.message}</p>}
         </div>
 
         <button className="button" type="submit" disabled={status.kind === 'sending'}>
