@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [24 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [25 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -16,7 +16,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 | F4 | **Demande de réservation** : bouton « Demander une réservation » sur chaque véhicule, formulaire dédié, envoi sur Telegram | `/vehicules/[slug]/reservation` |
 | — | **Administration** : le gérant modifie véhicules, tarifs et informations d'agence sans développeur | `/admin` |
 
-Bonus traités : **tests automatisés** (57 unitaires, 33 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'accessibilité a été prise en compte (voir « Limites ») mais n'a pas fait l'objet d'un audit.
+Bonus traités : **tests automatisés** (57 unitaires, 35 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'accessibilité a été prise en compte (voir « Limites ») mais n'a pas fait l'objet d'un audit.
 
 ---
 
@@ -100,7 +100,7 @@ npm run dev                       # http://localhost:3000 — admin : /admin
 | Telegram | API Bot `sendMessage`, appelée côté serveur | Token jamais exposé au navigateur ([ADR-0018](docs/adr/0018-integration-telegram-bot-api-cote-serveur.md)) |
 | Animations | **GSAP** | Titre du hero, révélation des cartes au scroll, curseur discret ; amélioration progressive, `prefers-reduced-motion` respecté, pas de smooth scroll ([ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md)) |
 | Style | **Tailwind CSS v4** | Jetons de design dans `@theme`, utilitaires dans le JSX ([ADR-0023](docs/adr/0023-tailwind-css-pour-la-mise-en-forme.md)) |
-| Direction artistique | Blanc, gris perle, acier, anthracite ; Newsreader + Inter ; règle « zéro AI slop » | [ADR-0022](docs/adr/0022-direction-artistique-et-regle-zero-ai-slop.md), police et photos : [ADR-0024](docs/adr/0024-police-lisible-photos-libres-et-pied-de-page.md) |
+| Direction artistique | Blanc, gris perle, acier, anthracite ; Newsreader + Inter ; règle « zéro AI slop » | [ADR-0022](docs/adr/0022-direction-artistique-et-regle-zero-ai-slop.md), police et photos : [ADR-0024](docs/adr/0024-police-lisible-photos-libres-et-pied-de-page.md), hero et navigation : [ADR-0025](docs/adr/0025-hero-plein-ecran-et-barre-de-navigation.md) |
 | Qualité | ESLint, TypeScript `strict`, **zéro `any`** | Règle imposée par ESLint ([ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md)) |
 | Tests | Vitest + Playwright (`e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
 | Infra | Docker Compose : `db` + `app` + `nginx` | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
@@ -193,7 +193,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 
 - Décisions d'architecture : Next.js + Payload CMS (choix hors sujet, pour que le client édite son site), PostgreSQL avec la perspective Supabase, Docker + nginx, GSAP, versionnement des migrations, CI.
 - Pilotage : validation de chaque étape avant de passer à la suivante, **fusion des PR uniquement après CI verte**.
-- Vérifications automatiques : 57 tests unitaires, 33 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
+- Vérifications automatiques : 57 tests unitaires, 35 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
 
 > **À compléter par le candidat avant le rendu** : ce qu'il a relu et réécrit lui-même ligne à ligne, et les points qu'il a testés à la main (par exemple un envoi réel avec son propre bot Telegram, qui n'a pas pu être fait dans l'environnement de l'agent faute de token).
 
