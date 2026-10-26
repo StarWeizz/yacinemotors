@@ -22,27 +22,36 @@ const HomePage = async () => {
 
   return (
     <>
-      <section className="pt-[clamp(3rem,8vw,7rem)] pb-[clamp(4rem,9vw,8rem)]">
-        <div className="container-x grid grid-cols-1 items-start gap-x-8 gap-y-12 min-[960px]:grid-cols-12">
-          <div className="min-[960px]:col-span-7 min-[960px]:pt-[clamp(0rem,3vw,2.5rem)]">
+      <section className="on-dark relative isolate flex min-h-svh items-center overflow-hidden bg-ink pt-32 pb-20 text-paper">
+        {/* Décor : la route des Crêtes entre Cassis et La Ciotat, assombrie pour garder le texte lisible. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- fond plein écran, fichier local */}
+        <img
+          src="/images/hero-route-des-cretes.jpg"
+          alt=""
+          fetchPriority="high"
+          className="absolute inset-0 -z-20 size-full object-cover object-[65%_center]"
+        />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-ink/60" />
+        <div className="container-x grid grid-cols-1 items-end gap-x-8 gap-y-12 min-[960px]:grid-cols-12">
+          <div className="min-[960px]:col-span-7">
             <HeroTitle text={`Le bon véhicule, au départ de ${agency.city}.`} />
-            <p className="max-w-[46ch] text-xl leading-normal text-steel">
+            <p className="max-w-[46ch] text-xl leading-normal text-paper/85">
               Citadines, compactes, SUV et sportives : des véhicules récents, des prix par jour
               clairs, la caution et les kilomètres inclus affichés avant de demander quoi que ce
               soit.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link className="button" href="/vehicules">
+              <Link className="button button-light" href="/vehicules">
                 Parcourir le catalogue
               </Link>
-              <Link className="button button-ghost" href="/contact">
+              <Link className="button button-ghost-light" href="/contact">
                 Nous contacter
               </Link>
             </div>
           </div>
 
           {mostPowerful && (
-            <aside className="on-dark flex flex-col gap-5 bg-ink p-[clamp(1.5rem,3vw,2.25rem)] text-paper min-[960px]:col-span-4 min-[960px]:col-start-9 min-[960px]:mt-[clamp(0rem,9vw,7rem)]" aria-label="Véhicule le plus puissant disponible">
+            <aside className="on-dark flex flex-col gap-5 bg-ink p-[clamp(1.5rem,3vw,2.25rem)] text-paper min-[960px]:col-span-4 min-[960px]:col-start-9" aria-label="Véhicule le plus puissant disponible">
               <p className="m-0 text-sm text-steel-light">Le plus puissant disponible</p>
               <div>
                 <p className="m-0 font-serif text-4xl leading-[1.02] font-medium">{getVehicleName(mostPowerful)}</p>

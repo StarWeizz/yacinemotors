@@ -69,6 +69,9 @@
   .button-ghost { @apply bg-transparent text-ink; }
   .button-ghost::before { @apply bg-ink; }
   .button-ghost:hover, .button-ghost:focus-visible { @apply text-paper; }
+  .button-ghost-light { @apply border-paper bg-transparent text-paper; }
+  .button-ghost-light::before { @apply bg-paper; }
+  .button-ghost-light:hover, .button-ghost-light:focus-visible { @apply text-ink; }
   .button-light { @apply border-paper bg-paper text-ink; }
   .button-light::before { @apply bg-mist; }
 
