@@ -14,7 +14,7 @@ type RevealProps = {
 
 /**
  * Progressive enhancement (ADR-0014): the content is server-rendered and visible without
- * JavaScript. Once hydrated, elements marked `data-reveal` fade in as they scroll into view,
+ * JavaScript. Once hydrated, elements marked `data-reveal` are unveiled from the top edge as they scroll into view,
  * unless the visitor prefers reduced motion.
  */
 export function Reveal({ children, className }: RevealProps) {
@@ -25,12 +25,19 @@ export function Reveal({ children, className }: RevealProps) {
       const media = gsap.matchMedia()
       media.add('(prefers-reduced-motion: no-preference)', () => {
         const items = gsap.utils.toArray<HTMLElement>('[data-reveal]', containerRef.current)
-        gsap.set(items, { opacity: 0, y: 32 })
+        gsap.set(items, { opacity: 0, clipPath: 'inset(14% 0 0 0)' })
         ScrollTrigger.batch(items, {
           start: 'top 92%',
           once: true,
           onEnter: (batch) =>
-            gsap.to(batch, { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: 'power3.out' }),
+            gsap.to(batch, {
+              opacity: 1,
+              clipPath: 'inset(0% 0 0 0)',
+              duration: 1.1,
+              stagger: 0.12,
+              ease: 'expo.out',
+              clearProps: 'clipPath',
+            }),
         })
       })
       return () => media.revert()
