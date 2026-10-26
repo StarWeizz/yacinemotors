@@ -11,8 +11,9 @@ const CreditsPage = () => (
     <header className="page-title">
       <h1>Crédits photos</h1>
       <p>
-        Les photos présentent des véhicules du même modèle que ceux proposés, pas les véhicules de
-        l&apos;agence eux-mêmes. Elles proviennent de Wikimedia Commons et sont utilisées sous
+        Les photos de véhicules présentent des voitures du même modèle que celles proposées, pas les
+        véhicules de l&apos;agence eux-mêmes. L&apos;image de l&apos;accueil montre la route des Crêtes,
+        entre Cassis et La Ciotat. Toutes proviennent de Wikimedia Commons et sont utilisées sous
         licence libre ; merci à leurs auteurs.
       </p>
     </header>
@@ -23,7 +24,7 @@ const CreditsPage = () => (
           key={credit.file}
           className="grid gap-x-8 gap-y-1 border-b border-line py-4 text-sm md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]"
         >
-          <span className="font-semibold">{credit.vehicle}</span>
+          <span className="font-semibold">{credit.subject}</span>
           <span className="text-steel">
             « {credit.title} » par {credit.author},{' '}
             <a href={credit.licenseUrl} rel="noopener noreferrer">
