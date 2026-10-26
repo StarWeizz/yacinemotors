@@ -382,6 +382,13 @@ export interface Agency {
   name: string;
   city: string;
   currency: string;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  /**
+   * Une ligne par plage, par exemple : « Lundi – vendredi : 9 h – 19 h ».
+   */
+  openingHours?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -393,6 +400,10 @@ export interface AgencySelect<T extends boolean = true> {
   name?: T;
   city?: T;
   currency?: T;
+  address?: T;
+  phone?: T;
+  email?: T;
+  openingHours?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

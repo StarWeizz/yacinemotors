@@ -27,10 +27,17 @@ test.describe('catalog', () => {
     await expect(m4).toContainText('5 ans de permis minimum')
   })
 
-  test('shows a placeholder instead of broken images', async ({ page }) => {
+  test('shows a photo for each vehicle and every file is served', async ({ page }) => {
     await page.goto('/vehicules')
-    await expect(page.locator('article img')).toHaveCount(0)
-    await expect(page.getByRole('img', { name: /Visuel à venir/ })).toHaveCount(10)
+    const photos = page.locator('article img')
+    await expect(photos).toHaveCount(10)
+    // Images are lazy-loaded: check the files themselves rather than what is on screen.
+    const sources = await photos.evaluateAll((images) => images.map((image) => image.getAttribute('src') ?? ''))
+    for (const source of sources) {
+      const response = await page.request.get(source)
+      expect(response.status(), source).toBe(200)
+      expect(response.headers()['content-type'], source).toContain('image/jpeg')
+    }
   })
 })
 

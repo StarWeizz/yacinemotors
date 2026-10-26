@@ -48,7 +48,7 @@ export function Field({
     <div className="field">
       <label htmlFor={id}>
         {label}
-        {required ? <span aria-hidden="true"> *</span> : <span className="field__optional"> (facultatif)</span>}
+        {required ? <span aria-hidden="true"> *</span> : <span className="field-optional"> (facultatif)</span>}
       </label>
       {type === 'textarea' ? (
         <textarea {...shared} rows={rows} />
@@ -56,12 +56,12 @@ export function Field({
         <input {...shared} type={type} min={min} max={max} inputMode={type === 'number' ? 'numeric' : undefined} />
       )}
       {hint && (
-        <p id={`${id}-hint`} className="field__hint">
+        <p id={`${id}-hint`} className="field-hint">
           {hint}
         </p>
       )}
       {error && (
-        <p id={`${id}-error`} className="field__error">
+        <p id={`${id}-error`} className="field-error">
           {error}
         </p>
       )}

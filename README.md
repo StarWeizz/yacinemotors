@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [21 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [25 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -16,7 +16,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 | F4 | **Demande de réservation** : bouton « Demander une réservation » sur chaque véhicule, formulaire dédié, envoi sur Telegram | `/vehicules/[slug]/reservation` |
 | — | **Administration** : le gérant modifie véhicules, tarifs et informations d'agence sans développeur | `/admin` |
 
-Bonus traités : **tests automatisés** (54 unitaires, 30 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'accessibilité a été prise en compte (voir « Limites ») mais n'a pas fait l'objet d'un audit.
+Bonus traités : **tests automatisés** (57 unitaires, 35 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'accessibilité a été prise en compte (voir « Limites ») mais n'a pas fait l'objet d'un audit.
 
 ---
 
@@ -98,7 +98,9 @@ npm run dev                       # http://localhost:3000 — admin : /admin
 | CMS | **Payload CMS** (headless, dans le même projet Next.js) | Le gérant modifie lui-même son site ; modèle « utilisateurs + produits » ; types TypeScript générés ([ADR-0004](docs/adr/0004-payload-cms-headless.md)) |
 | Base | **PostgreSQL** | Standard, relationnel ; proche de **Supabase** (hébergé, open source et économique) : passer à une base managée = changer `DATABASE_URI` ([ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md)) |
 | Telegram | API Bot `sendMessage`, appelée côté serveur | Token jamais exposé au navigateur ([ADR-0018](docs/adr/0018-integration-telegram-bot-api-cote-serveur.md)) |
-| Animations | **GSAP** | Apparition au scroll, en amélioration progressive ([ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md)) |
+| Animations | **GSAP** | Titre du hero, révélation des cartes au scroll, curseur discret ; amélioration progressive, `prefers-reduced-motion` respecté, pas de smooth scroll ([ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md)) |
+| Style | **Tailwind CSS v4** | Jetons de design dans `@theme`, utilitaires dans le JSX ([ADR-0023](docs/adr/0023-tailwind-css-pour-la-mise-en-forme.md)) |
+| Direction artistique | Blanc, gris perle, acier, anthracite ; Newsreader + Inter ; règle « zéro AI slop » | [ADR-0022](docs/adr/0022-direction-artistique-et-regle-zero-ai-slop.md), police et photos : [ADR-0024](docs/adr/0024-police-lisible-photos-libres-et-pied-de-page.md), hero et navigation : [ADR-0025](docs/adr/0025-hero-plein-ecran-et-barre-de-navigation.md) |
 | Qualité | ESLint, TypeScript `strict`, **zéro `any`** | Règle imposée par ESLint ([ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md)) |
 | Tests | Vitest + Playwright (`e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
 | Infra | Docker Compose : `db` + `app` + `nginx` | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
@@ -160,7 +162,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 | Telegram | Appel depuis le navigateur ; webhook ; e-mail ; n8n/Zapier ; grammY/telegraf | Token exposé ; un webhook sert à *recevoir* ; dépendance inutile pour un seul appel HTTP |
 | Formulaires | Server Actions ; reCAPTCHA/Turnstile ; modale | Server Actions : URL non ciblables par nginx ; captcha : dépendance et données personnelles (à reconsidérer si du spam apparaît) ; page dédiée plus accessible |
 | Rendu | Pages statiques + revalidation | Exige une base au build et une invalidation depuis Payload |
-| Style | Tailwind, CSS-in-JS | Dépendance sans besoin réel à cette échelle |
+| Style | CSS global écrit à la main, CSS-in-JS | Le CSS à la main était le choix initial (ADR-0017) ; remplacé par Tailwind à la demande du candidat ([ADR-0023](docs/adr/0023-tailwind-css-pour-la-mise-en-forme.md)). CSS-in-JS : exécution côté client en plus |
 
 ---
 
@@ -181,17 +183,17 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 ### Exemples où l'IA a été corrigée, refusée ou réorientée
 
 1. **Langue** — l'IA a rédigé le premier `CLAUDE.md` en anglais. Le candidat a interrompu : « En français stp. Sauf les commits ». Le fichier a été réécrit et la règle de langue ajoutée au `CLAUDE.md` et à l'[ADR-0001](docs/adr/0001-enregistrer-les-decisions-d-architecture.md).
-2. **Périmètre ajouté en cours de route par le candidat** — PR et code review « si utiles », Docker + nginx, versionnement des migrations « comme Supabase ou Laravel », CI GitHub, GSAP pour la présentation des véhicules. Chaque demande est devenue une règle dans `CLAUDE.md` et/ou un ADR (0002, 0008, 0014, 0015, 0016).
+2. **Périmètre ajouté en cours de route par le candidat** — PR et code review « si utiles », Docker + nginx, versionnement des migrations « comme Supabase ou Laravel », CI GitHub, GSAP pour la présentation des véhicules. Chaque demande est devenue une règle dans `CLAUDE.md` et/ou un ADR (0002, 0008, 0014, 0015, 0016), puis la refonte visuelle (règle « zéro AI slop », ADR-0022) et Tailwind (ADR-0023).
 3. **La revue de code a invalidé une configuration de l'IA** — la limitation de débit nginx proposée par l'IA (1 requête/s sur `/api/`) était trop stricte : elle bloquait l'administration (constaté en test : 429 dès les premières requêtes). La revue a aussi relevé 8 autres défauts : en-têtes de sécurité perdus sur les fichiers statiques, nginx qui garde l'ancienne IP de l'app, migrations lancées à la première requête (la doc disait « au démarrage »), variables d'environnement remplacées par une chaîne vide, etc. Les 9 points ont été traités, vérifiés dans Docker et consignés ([ADR-0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md)).
 4. **L'IA a corrigé ses propres erreurs** — un script de seed qui n'insérait rien sans erreur (le lanceur quitte avant la fin d'une promesse non attendue) ; `next start` incompatible avec `output: standalone` (les tests passaient mais sans garantie que CSS/JS soient servis) ; un contrôle d'origine qui aurait échoué derrière nginx car `Host` perd le port ; des tests E2E faussement rouges à cause d'un ancien serveur resté sur le port 3000 (vérifié que le processus était bien celui du projet avant de l'arrêter).
 5. **Rigueur sur les sources** — pour Telegram, l'outil de lecture web n'a lu que le début d'une page de 580 000 caractères ; plutôt que de deviner, l'IA a téléchargé la page et extrait elle-même les sections `sendMessage`, le mode HTML et `ResponseParameters`.
-6. **Ne pas inventer** — le sujet ne donne ni adresse, ni téléphone, ni horaires de l'agence : le site n'en affiche aucun. L'accueil n'utilise que des chiffres calculés à partir du catalogue.
+6. **Ne pas inventer** — le sujet ne donne ni adresse, ni téléphone, ni horaires de l'agence : le pied de page n'affiche que les coordonnées saisies dans `/admin` (champs facultatifs du global « Agence ») et n'en invente aucune. L'accueil n'utilise que des chiffres calculés à partir du catalogue.
 
 ### Ce que le candidat a décidé et vérifié
 
 - Décisions d'architecture : Next.js + Payload CMS (choix hors sujet, pour que le client édite son site), PostgreSQL avec la perspective Supabase, Docker + nginx, GSAP, versionnement des migrations, CI.
 - Pilotage : validation de chaque étape avant de passer à la suivante, **fusion des PR uniquement après CI verte**.
-- Vérifications automatiques : 54 tests unitaires, 30 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
+- Vérifications automatiques : 57 tests unitaires, 35 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
 
 > **À compléter par le candidat avant le rendu** : ce qu'il a relu et réécrit lui-même ligne à ligne, et les points qu'il a testés à la main (par exemple un envoi réel avec son propre bot Telegram, qui n'a pas pu être fait dans l'environnement de l'agent faute de token).
 
@@ -225,7 +227,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 
 | Point flou du sujet | Décision |
 |---|---|
-| Images « non fournies » | Le serveur vérifie que le fichier existe ; sinon un visuel de remplacement (marque, modèle) s'affiche. Aucune image cassée. Dès qu'une vraie photo est déposée dans `public/`, elle est utilisée |
+| Images « non fournies » | Le serveur vérifie que le fichier existe ; sinon un visuel de remplacement (marque, modèle) s'affiche. Aucune image cassée. Les 10 véhicules ont une photo libre de droits (Wikimedia Commons, CC BY-SA 4.0) du même modèle, nommée comme le chemin du JSON : le JSON reste intact. Auteurs et licences sur `/credits-photos` ([ADR-0024](docs/adr/0024-police-lisible-photos-libres-et-pied-de-page.md)). Ce ne sont pas les véhicules de l'agence |
 | Pas de back-office voulu / Payload | Payload sert uniquement à éditer le catalogue ; les demandes ne sont ni stockées ni gérées (Telegram uniquement) |
 | Informations « qui ont un sens pour le client » | Tout le JSON est exploité : caution, km inclus, Crit'Air, équipements, et surtout les conditions (**âge minimum, années de permis**) et la **date de fin d'indisponibilité** |
 | Véhicule indisponible | Affiché avec sa date de retour ; on peut demander une réservation **à partir de** cette date, pas avant. Sans date de retour, la demande est refusée et le bouton masqué |
@@ -258,8 +260,9 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 **Suites possibles**
 
 1. Déploiement (par exemple application conteneurisée + Supabase pour la base, ADR dédié), HTTPS et HSTS.
-2. Stocker les demandes (table Payload) pour ne rien perdre et permettre un suivi — en discuter avec le client, car cela réintroduit un back-office.
-3. Page détail par véhicule.
-4. Vraies photos via la médiathèque Payload ; données d'agence (adresse, horaires, téléphone) quand le client les fournit.
-5. Audit d'accessibilité, CSP, renforcement anti-spam.
-6. Mise en cache des pages catalogue avec invalidation depuis Payload.
+2. Remplacer les photos libres de Commons par celles de l'agence et renseigner ses coordonnées dans `/admin` (le pied de page s'adapte).
+3. Stocker les demandes (table Payload) pour ne rien perdre et permettre un suivi — en discuter avec le client, car cela réintroduit un back-office.
+4. Page détail par véhicule.
+5. Gérer les photos via la médiathèque Payload plutôt que par des fichiers dans `public/`.
+6. Audit d'accessibilité, CSP, renforcement anti-spam.
+7. Mise en cache des pages catalogue avec invalidation depuis Payload.
