@@ -45,7 +45,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
         >
           Aller au contenu
         </a>
-        <SiteHeader />
+        <SiteHeader agencyName={agency.name} city={agency.city} />
         <main id="contenu">{children}</main>
         <Cursor />
         <SiteFooter agency={agency} terms={getRentalTerms(vehicles)} />
