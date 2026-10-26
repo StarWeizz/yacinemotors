@@ -19,6 +19,30 @@ export const getAvailabilityLabel = ({ available, unavailableUntil }: Availabili
     : 'Indisponible'
 }
 
+export type RentalTerms = {
+  depositRange: [number, number]
+  kmRange: [number, number]
+  maxMinimumAge: number | null
+  maxMinimumLicenseYears: number | null
+}
+
+const bounds = (values: number[]): [number, number] => [Math.min(...values), Math.max(...values)]
+
+/** The rental conditions that apply across the fleet, for the footer. Null when there is no vehicle. */
+export const getRentalTerms = (vehicles: readonly Vehicle[]): RentalTerms | null => {
+  if (vehicles.length === 0) return null
+  const highest = (values: (number | null | undefined)[]): number | null => {
+    const known = values.filter((value): value is number => typeof value === 'number')
+    return known.length > 0 ? Math.max(...known) : null
+  }
+  return {
+    depositRange: bounds(vehicles.map((vehicle) => vehicle.deposit)),
+    kmRange: bounds(vehicles.map((vehicle) => vehicle.includedKmPerDay)),
+    maxMinimumAge: highest(vehicles.map((vehicle) => vehicle.minimumAge)),
+    maxMinimumLicenseYears: highest(vehicles.map((vehicle) => vehicle.minimumLicenseYears)),
+  }
+}
+
 export const getVehicleName = ({ brand, model }: Pick<Vehicle, 'brand' | 'model'>): string =>
   `${brand} ${model}`
 
