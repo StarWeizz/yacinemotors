@@ -74,6 +74,12 @@ React + TypeScript (strict) · Next.js · Payload CMS (headless, gestion utilisa
 ### 9. Documentation
 - Le `README.md` documente la stack, l'outillage (linter, tests, Docker), l'installation, les variables d'environnement et les sections exigées par le sujet. Le garder synchronisé avec les ADR.
 
+### 10. Design : zéro AI slop
+- Direction artistique (ADR-0022) : luxe discret et méditerranéen, blanc dominant, gris perle, acier, noir anthracite ; serif éditoriale pour les titres, sans-serif géométrique pour le texte ; beaucoup d'espace, lignes fines.
+- **Zéro AI slop** : aucun dégradé violet/cyan, aucun « glow » néon, aucune forme flottante ou « blob » décoratif, aucune illustration 3D isométrique ou « Memphis », aucune animation de scroll lourde ni micro-interaction gratuite, aucun témoignage ou logo partenaire factice. Tout élément visuel doit avoir un sens métier (location de véhicules à Marseille).
+- Pas de smooth scroll (Lenis ou équivalent) : défilement natif. GSAP uniquement pour des animations sobres, qui respectent `prefers-reduced-motion` et laissent le contenu lisible sans JavaScript (ADR-0014).
+- Avant de livrer une interface, la relire avec cette liste et retirer ce qui ne sert pas.
+
 ## Points ouverts (chacun aura son ADR)
 - Nginx : nécessaire ou non selon le déploiement (rate limiting, TLS, cache des assets).
 - Déploiement en ligne (non réalisé) ; bonus retenus : tests automatisés, anti-spam, filtres et tri du catalogue (ADR-0021).
