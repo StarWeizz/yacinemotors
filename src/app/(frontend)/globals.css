@@ -12,7 +12,7 @@
   --color-ink: #141517;
   --color-brick: #8c2f26;
 
-  --font-serif: var(--font-display), 'Bodoni 72', Didot, 'Times New Roman', serif;
+  --font-serif: var(--font-display), Georgia, 'Times New Roman', serif;
   --font-sans: var(--font-body), system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 
   /* Échelle typographique (rapport ~1.25) */
@@ -73,7 +73,7 @@
   .button-light::before { @apply bg-mist; }
 
   .page-title { @apply pt-[clamp(3rem,7vw,6rem)] pb-[clamp(1.5rem,3vw,2.5rem)]; }
-  .page-title h1 { @apply mb-4 text-display leading-none tracking-[-0.025em]; }
+  .page-title h1 { @apply mb-4 text-display leading-none tracking-[-0.02em]; }
   .page-title p { @apply max-w-[52ch] text-xl text-steel; }
 
   .form { @apply flex flex-col gap-6; }

@@ -4,7 +4,7 @@ type PriceAmountProps = {
   euros: number
 }
 
-/** The amount in the serif face, the currency sign in the sans: its hairlines vanish in a Didone. */
+/** The amount in the serif face, the currency sign in the sans, slightly smaller. */
 export function PriceAmount({ euros }: PriceAmountProps) {
   const amount = formatPrice(euros).replace(/[\s\u00a0\u202f]*€$/, '')
   return (

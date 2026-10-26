@@ -36,7 +36,7 @@ export function HeroTitle({ text }: HeroTitleProps) {
   )
 
   return (
-    <h1 ref={ref} className="mb-[0.45em] text-display leading-[0.98] tracking-[-0.025em]">
+    <h1 ref={ref} className="mb-[0.45em] text-display leading-[0.98] tracking-[-0.02em]">
       {text.split(' ').map((word, index) => (
         <span key={`${word}-${index}`}>
           <span className="hero-word">

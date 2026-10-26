@@ -1,23 +1,23 @@
 import type { Metadata } from 'next'
-import { Bodoni_Moda, Plus_Jakarta_Sans } from 'next/font/google'
+import { Inter, Newsreader } from 'next/font/google'
 import type { ReactNode } from 'react'
 import { Cursor } from '@/components/Cursor'
 import { SiteFooter } from '@/components/SiteFooter'
 import { SiteHeader } from '@/components/SiteHeader'
-import { getAgency } from '@/lib/vehicles/queries'
+import { getRentalTerms } from '@/lib/vehicles/presentation'
+import { getAgency, getVehicles } from '@/lib/vehicles/queries'
 import './globals.css'
 
 export const dynamic = 'force-dynamic'
 
 // Hébergées avec l'application au build (pas d'appel à Google à la visite). ADR-0022.
-const display = Bodoni_Moda({
+const display = Newsreader({
   subsets: ['latin'],
-  style: ['normal', 'italic'],
   axes: ['opsz'],
   variable: '--font-display',
   display: 'swap',
 })
-const body = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
+const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
 
 // Marque la page « JS actif » avant le premier rendu, pour que les animations d'entrée
 // partent de l'état masqué sans clignotement. Sans JavaScript, tout reste visible.
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
 }
 
 const Layout = async ({ children }: { children: ReactNode }) => {
-  const agency = await getAgency()
+  const [agency, vehicles] = await Promise.all([getAgency(), getVehicles()])
 
   return (
     <html lang="fr" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
@@ -48,7 +48,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
         <SiteHeader />
         <main id="contenu">{children}</main>
         <Cursor />
-        <SiteFooter agencyName={agency.name} city={agency.city} />
+        <SiteFooter agency={agency} terms={getRentalTerms(vehicles)} />
       </body>
     </html>
   )
