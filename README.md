@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [21 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [23 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -98,7 +98,9 @@ npm run dev                       # http://localhost:3000 — admin : /admin
 | CMS | **Payload CMS** (headless, dans le même projet Next.js) | Le gérant modifie lui-même son site ; modèle « utilisateurs + produits » ; types TypeScript générés ([ADR-0004](docs/adr/0004-payload-cms-headless.md)) |
 | Base | **PostgreSQL** | Standard, relationnel ; proche de **Supabase** (hébergé, open source et économique) : passer à une base managée = changer `DATABASE_URI` ([ADR-0009](docs/adr/0009-postgresql-pour-payload.md), [ADR-0010](docs/adr/0010-postgresql-confirme-et-proximite-supabase.md)) |
 | Telegram | API Bot `sendMessage`, appelée côté serveur | Token jamais exposé au navigateur ([ADR-0018](docs/adr/0018-integration-telegram-bot-api-cote-serveur.md)) |
-| Animations | **GSAP** | Apparition au scroll, en amélioration progressive ([ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md)) |
+| Animations | **GSAP** | Titre du hero, révélation des cartes au scroll, curseur discret ; amélioration progressive, `prefers-reduced-motion` respecté, pas de smooth scroll ([ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md)) |
+| Style | **Tailwind CSS v4** | Jetons de design dans `@theme`, utilitaires dans le JSX ([ADR-0023](docs/adr/0023-tailwind-css-pour-la-mise-en-forme.md)) |
+| Direction artistique | Blanc, gris perle, acier, anthracite ; Bodoni Moda + Plus Jakarta Sans ; règle « zéro AI slop » | [ADR-0022](docs/adr/0022-direction-artistique-et-regle-zero-ai-slop.md) |
 | Qualité | ESLint, TypeScript `strict`, **zéro `any`** | Règle imposée par ESLint ([ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md)) |
 | Tests | Vitest + Playwright (`e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
 | Infra | Docker Compose : `db` + `app` + `nginx` | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
@@ -160,7 +162,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 | Telegram | Appel depuis le navigateur ; webhook ; e-mail ; n8n/Zapier ; grammY/telegraf | Token exposé ; un webhook sert à *recevoir* ; dépendance inutile pour un seul appel HTTP |
 | Formulaires | Server Actions ; reCAPTCHA/Turnstile ; modale | Server Actions : URL non ciblables par nginx ; captcha : dépendance et données personnelles (à reconsidérer si du spam apparaît) ; page dédiée plus accessible |
 | Rendu | Pages statiques + revalidation | Exige une base au build et une invalidation depuis Payload |
-| Style | Tailwind, CSS-in-JS | Dépendance sans besoin réel à cette échelle |
+| Style | CSS global écrit à la main, CSS-in-JS | Le CSS à la main était le choix initial (ADR-0017) ; remplacé par Tailwind à la demande du candidat ([ADR-0023](docs/adr/0023-tailwind-css-pour-la-mise-en-forme.md)). CSS-in-JS : exécution côté client en plus |
 
 ---
 
@@ -181,7 +183,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 ### Exemples où l'IA a été corrigée, refusée ou réorientée
 
 1. **Langue** — l'IA a rédigé le premier `CLAUDE.md` en anglais. Le candidat a interrompu : « En français stp. Sauf les commits ». Le fichier a été réécrit et la règle de langue ajoutée au `CLAUDE.md` et à l'[ADR-0001](docs/adr/0001-enregistrer-les-decisions-d-architecture.md).
-2. **Périmètre ajouté en cours de route par le candidat** — PR et code review « si utiles », Docker + nginx, versionnement des migrations « comme Supabase ou Laravel », CI GitHub, GSAP pour la présentation des véhicules. Chaque demande est devenue une règle dans `CLAUDE.md` et/ou un ADR (0002, 0008, 0014, 0015, 0016).
+2. **Périmètre ajouté en cours de route par le candidat** — PR et code review « si utiles », Docker + nginx, versionnement des migrations « comme Supabase ou Laravel », CI GitHub, GSAP pour la présentation des véhicules. Chaque demande est devenue une règle dans `CLAUDE.md` et/ou un ADR (0002, 0008, 0014, 0015, 0016), puis la refonte visuelle (règle « zéro AI slop », ADR-0022) et Tailwind (ADR-0023).
 3. **La revue de code a invalidé une configuration de l'IA** — la limitation de débit nginx proposée par l'IA (1 requête/s sur `/api/`) était trop stricte : elle bloquait l'administration (constaté en test : 429 dès les premières requêtes). La revue a aussi relevé 8 autres défauts : en-têtes de sécurité perdus sur les fichiers statiques, nginx qui garde l'ancienne IP de l'app, migrations lancées à la première requête (la doc disait « au démarrage »), variables d'environnement remplacées par une chaîne vide, etc. Les 9 points ont été traités, vérifiés dans Docker et consignés ([ADR-0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md)).
 4. **L'IA a corrigé ses propres erreurs** — un script de seed qui n'insérait rien sans erreur (le lanceur quitte avant la fin d'une promesse non attendue) ; `next start` incompatible avec `output: standalone` (les tests passaient mais sans garantie que CSS/JS soient servis) ; un contrôle d'origine qui aurait échoué derrière nginx car `Host` perd le port ; des tests E2E faussement rouges à cause d'un ancien serveur resté sur le port 3000 (vérifié que le processus était bien celui du projet avant de l'arrêter).
 5. **Rigueur sur les sources** — pour Telegram, l'outil de lecture web n'a lu que le début d'une page de 580 000 caractères ; plutôt que de deviner, l'IA a téléchargé la page et extrait elle-même les sections `sendMessage`, le mode HTML et `ResponseParameters`.
