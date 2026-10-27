@@ -82,5 +82,5 @@ React + TypeScript (strict) · Next.js · Payload CMS (headless, gestion utilisa
 
 ## Points ouverts (chacun aura son ADR)
 - Nginx : nécessaire ou non selon le déploiement (rate limiting, TLS, cache des assets).
-- Déploiement en ligne (non réalisé) ; bonus retenus : tests automatisés, anti-spam, filtres et tri du catalogue (ADR-0021), page détail par véhicule (ADR-0026), accessibilité (ADR-0027).
+- Déploiement en ligne (non réalisé) ; bonus retenus : tests automatisés, anti-spam, filtres et tri du catalogue (ADR-0021), page détail par véhicule (ADR-0026), accessibilité (ADR-0027), audit de sécurité (ADR-0028).
 - Le sujet dit « sans back-office à gérer » : Payload ajoute une interface d'admin — à justifier dans l'ADR dédié.
