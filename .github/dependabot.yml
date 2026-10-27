@@ -1,0 +1,19 @@
+# Weekly update PRs for the three things that ship or build the site (ADR-0028).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      payload:
+        patterns: ['payload', '@payloadcms/*']
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

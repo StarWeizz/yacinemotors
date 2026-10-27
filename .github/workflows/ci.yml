@@ -30,6 +30,9 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      # Fails on a critical advisory in a production dependency (the known high/moderate ones are
+      # documented in the README, "Limites").
+      - run: npm audit --omit=dev --audit-level=critical
       - run: npm run build
 
   migrations:
