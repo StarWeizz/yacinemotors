@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { Inter, Newsreader } from 'next/font/google'
 import type { ReactNode } from 'react'
 import { Cursor } from '@/components/Cursor'
@@ -49,11 +50,13 @@ const loadSiteChrome = async () => {
 
 const Layout = async ({ children }: { children: ReactNode }) => {
   const { agency, terms } = await loadSiteChrome()
+  // Set by src/proxy.ts: lets the one inline script run under the Content Security Policy.
+  const nonce = (await headers()).get('x-nonce') ?? undefined
 
   return (
     <html lang="fr" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: JS_FLAG }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: JS_FLAG }} />
         <a
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-20 focus:bg-ink focus:px-4 focus:py-2 focus:text-paper"
           href="#contenu"
