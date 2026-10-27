@@ -61,7 +61,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
           Aller au contenu
         </a>
         <SiteHeader agencyName={agency.name} city={agency.city} />
-        <main id="contenu">{children}</main>
+        <main id="contenu" tabIndex={-1} className="outline-none">{children}</main>
         <Cursor />
         <SiteFooter agency={agency} terms={terms} />
       </body>

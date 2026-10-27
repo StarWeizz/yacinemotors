@@ -31,7 +31,7 @@ const CreditsPage = () => (
               {credit.license}
             </a>
             ,{' '}
-            <a href={credit.source} rel="noopener noreferrer">
+            <a href={credit.source} rel="noopener noreferrer" aria-label={`Source de la photo : ${credit.title}`}>
               source
             </a>
             . Redimensionnée.
