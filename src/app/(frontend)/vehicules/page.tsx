@@ -55,7 +55,7 @@ const CatalogPage = async ({ searchParams }: Props) => {
           <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-x-8 gap-y-[clamp(2.5rem,5vw,4rem)] p-0">
             {vehicles.map((vehicle) => (
               <li key={vehicle.id} data-reveal>
-                <VehicleCard vehicle={vehicle} />
+                <VehicleCard vehicle={vehicle} headingLevel="h2" />
               </li>
             ))}
           </ul>
