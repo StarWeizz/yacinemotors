@@ -1,3 +1,4 @@
+import { signNotice } from './notice'
 import { wantsJson } from './request'
 import type { FieldErrors } from './validation'
 
@@ -10,13 +11,16 @@ const MAX_REDIRECT_MESSAGE = 300
 const redirect = (location: string): Response =>
   new Response(null, { status: 303, headers: { Location: location } })
 
+const redirectWithError = (page: string, message: string): Response =>
+  redirect(`${page}?erreur=${encodeURIComponent(message)}&sig=${signNotice(message)}`)
+
 export const respondSent = (request: Request, page: string): Response =>
   wantsJson(request) ? Response.json({ ok: true }) : redirect(`${page}?envoye=1`)
 
 export const respondInvalid = (request: Request, page: string, errors: FieldErrors): Response => {
   if (wantsJson(request)) return Response.json({ ok: false, errors }, { status: 422 })
   const message = Object.values(errors).join(' ').slice(0, MAX_REDIRECT_MESSAGE)
-  return redirect(`${page}?erreur=${encodeURIComponent(message)}`)
+  return redirectWithError(page, message)
 }
 
 export const respondFailure = (
@@ -27,4 +31,4 @@ export const respondFailure = (
 ): Response =>
   wantsJson(request)
     ? Response.json({ ok: false, message }, { status })
-    : redirect(`${page}?erreur=${encodeURIComponent(message)}`)
+    : redirectWithError(page, message)
