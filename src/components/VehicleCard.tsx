@@ -13,16 +13,26 @@ type VehicleCardProps = {
 export function VehicleCard({ vehicle }: VehicleCardProps) {
   const conditions = getConditions(vehicle)
   const equipment = vehicle.equipment ?? []
+  const detailHref = `/vehicules/${encodeURIComponent(vehicle.slug)}`
 
   return (
     <article className="group flex h-full flex-col border-t border-ink">
-      <div className="mt-[1.1rem] aspect-[4/3] overflow-hidden bg-pearl">
+      <Link
+        href={detailHref}
+        aria-hidden="true"
+        tabIndex={-1}
+        className="mt-[1.1rem] block aspect-[4/3] overflow-hidden bg-pearl"
+      >
         <VehicleVisual vehicle={vehicle} />
-      </div>
+      </Link>
       <div className="flex flex-1 flex-col gap-[1.1rem] pt-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="m-0 text-3xl">{getVehicleName(vehicle)}</h3>
+            <h3 className="m-0 text-3xl">
+              <Link href={detailHref} className="no-underline hover:underline">
+                {getVehicleName(vehicle)}
+              </Link>
+            </h3>
             <p className="mt-1 mb-0 text-sm text-steel">
               {vehicle.version} · {vehicle.year}
             </p>
