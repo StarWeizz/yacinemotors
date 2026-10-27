@@ -191,3 +191,12 @@ Demande : « Ouvre la PR et lance la code review », puis « installe GH et corr
 - **Rejeté par l'IA** : fenêtre modale (pas d'adresse partageable, inutilisable sans JS), galerie (le JSON n'a qu'une image par véhicule), données structurées schema.org (un prix de location n'est pas une offre de vente).
 - **Constats pendant le travail** : un test E2E était ambigu (le lien du titre et le bouton de réservation contenaient tous deux « BMW M4 ») → locator précisé dans le test, pas de changement de code ; Next.js signalait l'absence de `metadataBase` pour l'image de partage → nouvelle variable `SITE_URL` (`.env.example`, compose).
 - Vérifié : captures desktop/mobile relues, 59 tests unitaires, 43 E2E (7 nouveaux dont un sans JavaScript et un 404), lint, types.
+
+## 20. Audit d'accessibilité
+
+- Demande : « Fais l'audit d'accessibilité ». Décision : ADR-0027 ; rapport : `docs/accessibilite.md`.
+- **Méthode choisie par l'IA** : axe-core (WCAG 2.2 AA + bonnes pratiques) sur 10 pages en bureau et mobile, puis contrôles manuels de ce que l'outil ne voit pas (reflow à 320 px, espacement du texte, ordre de tabulation et focus, lien d'évitement, focus après erreur serveur, contraste du texte sur la photo calculé sur la zone la plus claire, taille des cibles). Tout ce qui est automatisable est devenu un test E2E.
+- **Résultat honnête** : peu de violations pour axe (étiquette dans le nom du logo, ordre des titres du catalogue, page 404 sans `lang` ni `main`), mais les contrôles manuels en ont trouvé d'autres que l'outil ne voit pas : en-tête de 365 px à 320 px de large, `placeholder` à ≈ 3,4:1, case à cocher dont la ligne fait 20 px, focus qui restait sur le bouton après une erreur serveur, focus qui restait sur `body` après le lien d'évitement. 10 défauts corrigés.
+- **Faux positifs écartés** : le contrôle d'espacement du texte signalait des boutons « coupés » ; c'était l'élément de survol (translaté hors du bouton) et le lien d'évitement (masqué), pas du contenu perdu. Vérifié, pas corrigé.
+- **Les tests prouvent quelque chose** : en retirant les corrections (`git stash`), 28 des 36 tests d'accessibilité échouent ; avec elles, 36/36. La suite complète : 59 unitaires, 79 E2E, lint, types.
+- **Ce que l'IA n'a pas fait et le dit** : aucun lecteur d'écran, aucun utilisateur réel, un seul navigateur, `/admin` non audité ; aucune conformité revendiquée. Le README ne dit donc plus « non audité » mais « audité par outil, pas par des personnes ».
