@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [26 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [27 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -17,7 +17,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 | — | **Fiche véhicule** (bonus) : grande photo, description, caractéristiques, équipements, tarif avec exemples de durée, conditions, véhicules de la même catégorie | `/vehicules/[slug]` |
 | — | **Administration** : le gérant modifie véhicules, tarifs et informations d'agence sans développeur | `/admin` |
 
-Bonus traités : **tests automatisés** (59 unitaires, 43 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'accessibilité a été prise en compte (voir « Limites ») mais n'a pas fait l'objet d'un audit.
+Bonus traités : **tests automatisés** (59 unitaires, 79 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'**accessibilité** a fait l'objet d'un audit WCAG 2.2 AA (axe-core sur 10 pages, contrôles manuels, 36 tests en CI) : voir [`docs/accessibilite.md`](docs/accessibilite.md), qui dit aussi ce qui n'est pas couvert.
 
 ---
 
@@ -103,6 +103,7 @@ npm run dev                       # http://localhost:3000 — admin : /admin
 | Animations | **GSAP** | Titre du hero, révélation des cartes au scroll, curseur discret ; amélioration progressive, `prefers-reduced-motion` respecté, pas de smooth scroll ([ADR-0014](docs/adr/0014-gsap-pour-la-presentation-des-vehicules.md)) |
 | Style | **Tailwind CSS v4** | Jetons de design dans `@theme`, utilitaires dans le JSX ([ADR-0023](docs/adr/0023-tailwind-css-pour-la-mise-en-forme.md)) |
 | Direction artistique | Blanc, gris perle, acier, anthracite ; Newsreader + Inter ; règle « zéro AI slop » | [ADR-0022](docs/adr/0022-direction-artistique-et-regle-zero-ai-slop.md), police et photos : [ADR-0024](docs/adr/0024-police-lisible-photos-libres-et-pied-de-page.md), hero et navigation : [ADR-0025](docs/adr/0025-hero-plein-ecran-et-barre-de-navigation.md) |
+| Accessibilité | **axe-core** dans la suite E2E + contrôles manuels, cible WCAG 2.2 AA | Défauts corrigés et gardés par des tests ; rapport et limites dans [`docs/accessibilite.md`](docs/accessibilite.md), [ADR-0027](docs/adr/0027-audit-d-accessibilite-et-tests-axe.md) |
 | Qualité | ESLint, TypeScript `strict`, **zéro `any`** | Règle imposée par ESLint ([ADR-0006](docs/adr/0006-qualite-typescript-strict-zero-any.md)) |
 | Tests | Vitest + Playwright (`e2e/`) | [ADR-0007](docs/adr/0007-strategie-de-tests-vitest-playwright.md) |
 | Infra | Docker Compose : `db` + `app` + `nginx` | [ADR-0008](docs/adr/0008-docker-et-nginx.md), [0011](docs/adr/0011-architecture-docker-compose-et-nginx.md), [0012](docs/adr/0012-correctifs-de-la-code-review-docker-nginx.md) |
@@ -195,7 +196,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 
 - Décisions d'architecture : Next.js + Payload CMS (choix hors sujet, pour que le client édite son site), PostgreSQL avec la perspective Supabase, Docker + nginx, GSAP, versionnement des migrations, CI.
 - Pilotage : validation de chaque étape avant de passer à la suivante, **fusion des PR uniquement après CI verte**.
-- Vérifications automatiques : 59 tests unitaires, 43 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
+- Vérifications automatiques : 59 tests unitaires, 79 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
 
 > **À compléter par le candidat avant le rendu** : ce qu'il a relu et réécrit lui-même ligne à ligne, et les points qu'il a testés à la main (par exemple un envoi réel avec son propre bot Telegram, qui n'a pas pu être fait dans l'environnement de l'agent faute de token).
 
@@ -255,7 +256,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 - **Vulnérabilités de dépendances** : `npm audit --omit=dev` signale 8 alertes (3 élevées, 5 modérées) après correction de la critique (`dompurify`, forcé à la version corrigée par un `override`). Elles sont **transitives via Payload** : l'éditeur riche Lexical (`happy-dom`, côté administration) et des outils de développement (`esbuild`, `drizzle-kit`). Elles ne concernent pas les pages publiques ; la correction passe par une mise à jour de Payload.
 - **Pas de CSP ni de HSTS** ; TLS non géré localement.
 - **Migrations concurrentes** : avec plusieurs instances démarrant en même temps, les migrations pourraient s'exécuter simultanément (une seule instance aujourd'hui).
-- **Accessibilité non auditée** : lien d'évitement, repères sémantiques, libellés liés, annonces `aria-live`, focus visible, `prefers-reduced-motion` respecté ; pas de passage avec un lecteur d'écran ni d'audit automatisé.
+- **Accessibilité : auditée par outil, pas par des personnes** : 10 défauts corrigés et testés en CI ([`docs/accessibilite.md`](docs/accessibilite.md)), mais aucun test avec un lecteur d'écran ni avec de vrais utilisateurs, un seul navigateur automatisé, `/admin` (Payload) non audité. Les outils automatiques ne détectent qu'une partie des problèmes : aucune conformité n'est revendiquée.
 - **Amorce automatique** : tant que `AUTO_SEED=true`, une collection vidée puis un redémarrage rechargent le catalogue d'origine ; deux instances démarrant en même temps pourraient l'exécuter deux fois (sans doublon, le seed est idempotent).
 - **Pas de déploiement en ligne** ; images réelles à ajouter ; le premier compte administrateur doit être créé à la main.
 
@@ -265,5 +266,5 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 2. Remplacer les photos libres de Commons par celles de l'agence et renseigner ses coordonnées dans `/admin` (le pied de page s'adapte).
 3. Stocker les demandes (table Payload) pour ne rien perdre et permettre un suivi — en discuter avec le client, car cela réintroduit un back-office.
 4. Gérer les photos via la médiathèque Payload plutôt que par des fichiers dans `public/`.
-5. Audit d'accessibilité, CSP, renforcement anti-spam.
+5. Tests d'accessibilité avec un lecteur d'écran et de vrais utilisateurs ; CSP, renforcement anti-spam.
 6. Mise en cache des pages catalogue avec invalidation depuis Payload.
