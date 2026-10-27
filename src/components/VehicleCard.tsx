@@ -8,9 +8,11 @@ import { VehicleVisual } from './VehicleVisual'
 
 type VehicleCardProps = {
   vehicle: Vehicle
+  /** Level of the card title: h2 under the catalog's h1, h3 under a section heading. */
+  headingLevel?: 'h2' | 'h3'
 }
 
-export function VehicleCard({ vehicle }: VehicleCardProps) {
+export function VehicleCard({ vehicle, headingLevel: Heading = 'h3' }: VehicleCardProps) {
   const conditions = getConditions(vehicle)
   const equipment = vehicle.equipment ?? []
   const detailHref = `/vehicules/${encodeURIComponent(vehicle.slug)}`
@@ -28,11 +30,11 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
       <div className="flex flex-1 flex-col gap-[1.1rem] pt-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="m-0 text-3xl">
+            <Heading className="m-0 text-3xl">
               <Link href={detailHref} className="no-underline hover:underline">
                 {getVehicleName(vehicle)}
               </Link>
-            </h3>
+            </Heading>
             <p className="mt-1 mb-0 text-sm text-steel">
               {vehicle.version} · {vehicle.year}
             </p>

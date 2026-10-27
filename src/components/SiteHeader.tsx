@@ -34,8 +34,8 @@ export function SiteHeader({ agencyName, city }: SiteHeaderProps) {
           : 'sticky top-0 z-10 border-b border-line bg-paper text-ink'
       }
     >
-      <div className="container-x flex items-center justify-between gap-6 py-5">
-        <Link href="/" className="flex items-baseline gap-3 no-underline" aria-label={`${agencyName}, accueil`}>
+      <div className="container-x flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4 sm:py-5">
+        <Link href="/" className="flex items-baseline gap-3 no-underline">
           <span className="font-serif text-2xl leading-none font-medium tracking-[0.01em]">{agencyName}</span>
           <span
             className={`hidden border-l pl-3 text-sm leading-none sm:inline ${overHero ? 'border-paper/40 text-paper/75' : 'border-line text-steel'}`}
@@ -44,8 +44,8 @@ export function SiteHeader({ agencyName, city }: SiteHeaderProps) {
           </span>
         </Link>
 
-        <div className="flex items-center gap-[clamp(1rem,3vw,2.5rem)]">
-          <nav className="flex gap-[clamp(1rem,2.5vw,2rem)] text-sm" aria-label="Navigation principale">
+        <div className="flex flex-wrap items-center gap-x-[clamp(1rem,3vw,2.5rem)] gap-y-2">
+          <nav className="flex flex-wrap gap-x-[clamp(1rem,2.5vw,2rem)] gap-y-1 text-sm" aria-label="Navigation principale">
             {LINKS.map((link) => {
               const active = isActive(pathname, link.href)
               return (

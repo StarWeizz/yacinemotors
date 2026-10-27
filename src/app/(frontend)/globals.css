@@ -44,7 +44,9 @@
 }
 
 @layer base {
-  html { color-scheme: light; }
+  html { color-scheme: light; scroll-padding-top: 6rem; }
+  /* Le texte indicatif doit rester lisible (contraste ≥ 4,5:1), pas à 50 % d'opacité. */
+  ::placeholder { color: var(--color-steel); opacity: 1; }
   body {
     @apply flex min-h-screen flex-col bg-paper font-sans leading-relaxed text-ink antialiased;
   }

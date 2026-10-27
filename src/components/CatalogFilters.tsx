@@ -58,8 +58,8 @@ export const CatalogFilters = ({ choices, filters }: Props) => (
       <Select id="f-tri" name="tri" label="Trier par" value={filters.sort} options={SORT_OPTIONS} />
     </div>
     <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-      <label className="mr-auto flex items-center gap-2.5 text-sm">
-        <input className="size-4 accent-ink" type="checkbox" name="disponibles" value="1" defaultChecked={filters.availableOnly} />
+      <label className="mr-auto flex min-h-8 items-center gap-2.5 text-sm">
+        <input className="size-5 accent-ink" type="checkbox" name="disponibles" value="1" defaultChecked={filters.availableOnly} />
         Disponibles uniquement
       </label>
       <button type="submit" className="button">Appliquer</button>
