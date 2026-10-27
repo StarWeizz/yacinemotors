@@ -24,14 +24,27 @@ export function Cursor() {
       const moveX = gsap.quickTo(ring, 'x', { duration: 0.35, ease: 'power3.out' })
       const moveY = gsap.quickTo(ring, 'y', { duration: 0.35, ease: 'power3.out' })
 
+      let visible = false
+      let lastTarget: EventTarget | null = null
+
       const onMove = (event: PointerEvent) => {
         moveX(event.clientX)
         moveY(event.clientY)
-        gsap.to(ring, { opacity: 1, duration: 0.3, overwrite: 'auto' })
-        const target = event.target instanceof Element ? event.target : null
-        ring.classList.toggle('is-active', target?.closest(INTERACTIVE) != null)
+        if (!visible) {
+          visible = true
+          gsap.to(ring, { opacity: 1, duration: 0.3, overwrite: 'auto' })
+        }
+        // Only look at the element under the pointer when it changes, not on every event.
+        if (event.target !== lastTarget) {
+          lastTarget = event.target
+          const target = event.target instanceof Element ? event.target : null
+          ring.classList.toggle('is-active', target?.closest(INTERACTIVE) != null)
+        }
       }
-      const onLeave = () => gsap.to(ring, { opacity: 0, duration: 0.3, overwrite: 'auto' })
+      const onLeave = () => {
+        visible = false
+        gsap.to(ring, { opacity: 0, duration: 0.3, overwrite: 'auto' })
+      }
 
       window.addEventListener('pointermove', onMove)
       document.documentElement.addEventListener('pointerleave', onLeave)

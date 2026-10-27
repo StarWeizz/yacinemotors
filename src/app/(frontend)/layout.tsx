@@ -32,8 +32,22 @@ export const metadata: Metadata = {
     'Yacine Motors, agence de location de véhicules à Marseille : citadines, compactes, SUV et sportives.',
 }
 
+// Used only if the database cannot be read: the header and footer still render (pages that need
+// data report their own error) instead of the whole site, credits page included, going down.
+const FALLBACK_AGENCY = { name: 'Yacine Motors', city: 'Marseille' }
+
+const loadSiteChrome = async () => {
+  try {
+    const [agency, vehicles] = await Promise.all([getAgency(), getVehicles()])
+    return { agency, terms: getRentalTerms(vehicles) }
+  } catch (error: unknown) {
+    console.error('Site header and footer data unavailable', error)
+    return { agency: FALLBACK_AGENCY, terms: null }
+  }
+}
+
 const Layout = async ({ children }: { children: ReactNode }) => {
-  const [agency, vehicles] = await Promise.all([getAgency(), getVehicles()])
+  const { agency, terms } = await loadSiteChrome()
 
   return (
     <html lang="fr" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
@@ -48,7 +62,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
         <SiteHeader agencyName={agency.name} city={agency.city} />
         <main id="contenu">{children}</main>
         <Cursor />
-        <SiteFooter agency={agency} terms={getRentalTerms(vehicles)} />
+        <SiteFooter agency={agency} terms={terms} />
       </body>
     </html>
   )

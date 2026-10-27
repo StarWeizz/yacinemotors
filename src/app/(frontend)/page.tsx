@@ -4,7 +4,7 @@ import { PriceAmount } from '@/components/PriceAmount'
 import { Reveal } from '@/components/Reveal'
 import { VehicleCard } from '@/components/VehicleCard'
 import { formatKilometers, formatPrice } from '@/lib/format'
-import { getVehicleName, pickFeatured } from '@/lib/vehicles/presentation'
+import { getVehicleName, isAvailable, pickFeatured } from '@/lib/vehicles/presentation'
 import { getAgency, getVehicles } from '@/lib/vehicles/queries'
 
 const range = (values: number[], format: (value: number) => string): string => {
@@ -17,7 +17,7 @@ const HomePage = async () => {
   const [agency, vehicles] = await Promise.all([getAgency(), getVehicles()])
   const featured = pickFeatured(vehicles, 3)
   const mostPowerful = vehicles
-    .filter((vehicle) => vehicle.available)
+    .filter(isAvailable)
     .sort((a, b) => b.powerHp - a.powerHp)[0]
 
   return (

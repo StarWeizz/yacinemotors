@@ -74,7 +74,7 @@ export function SiteHeader({ agencyName, city }: SiteHeaderProps) {
             href="/vehicules?disponibles=1"
             className={`button hidden px-5 py-3 md:inline-block ${overHero ? 'button-light' : ''}`}
           >
-            Demander une réservation
+            Voir les véhicules disponibles
           </Link>
         </div>
       </div>

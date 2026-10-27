@@ -8,7 +8,7 @@ import { Field } from '@/components/forms/Field'
 import { PageNotice } from '@/components/forms/PageNotice'
 import { todayInMarseille } from '@/lib/dates'
 import { formatKilometers, formatPrice } from '@/lib/format'
-import { getConditions, getVehicleName } from '@/lib/vehicles/presentation'
+import { getConditions, getVehicleName, isAvailable } from '@/lib/vehicles/presentation'
 import { getVehicleBySlug } from '@/lib/vehicles/queries'
 
 type ReservationPageProps = {
@@ -31,7 +31,7 @@ const ReservationPage = async ({ params, searchParams }: ReservationPageProps) =
   if (!vehicle) notFound()
 
   const conditions = getConditions(vehicle)
-  const bookable = vehicle.available !== false || Boolean(vehicle.unavailableUntil)
+  const bookable = isAvailable(vehicle) || Boolean(vehicle.unavailableUntil)
 
   return (
     <div className="container-x">

@@ -1,4 +1,5 @@
 import type { Vehicle } from '@/payload-types'
+import { isAvailable } from './presentation'
 
 export const SORT_OPTIONS = [
   { value: 'defaut', label: 'Ordre du catalogue' },
@@ -89,7 +90,7 @@ export const applyFilters = (vehicles: readonly Vehicle[], filters: CatalogFilte
       (filters.fuel === null || getFamily(vehicle.fuel) === filters.fuel) &&
       (filters.gearbox === null || getFamily(vehicle.gearbox) === filters.gearbox) &&
       (filters.maxPrice === null || vehicle.pricePerDay <= filters.maxPrice) &&
-      (!filters.availableOnly || vehicle.available),
+      (!filters.availableOnly || isAvailable(vehicle)),
   )
   const compare = comparators[filters.sort]
   return compare ? kept.sort(compare) : kept

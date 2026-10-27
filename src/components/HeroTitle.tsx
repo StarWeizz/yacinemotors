@@ -13,7 +13,8 @@ type HeroTitleProps = {
 /**
  * The title is server-rendered word by word. With JavaScript and no reduced-motion preference,
  * the words rise out of their mask one after the other (the start state is set with the `js` variant
- * in the markup). Otherwise the text is simply there.
+ * in the markup). A CSS fail-safe unmasks the words after 3 s, so a script error can never leave the
+ * main heading invisible.. Otherwise the text is simply there.
  */
 export function HeroTitle({ text }: HeroTitleProps) {
   const ref = useRef<HTMLHeadingElement>(null)
@@ -40,7 +41,7 @@ export function HeroTitle({ text }: HeroTitleProps) {
       {text.split(' ').map((word, index) => (
         <span key={`${word}-${index}`}>
           <span className="hero-word">
-            <span className="hero-word__inner motion-safe:js:translate-y-[108%]">{word}</span>
+            <span className="hero-word__inner motion-safe:js:translate-y-[108%] motion-safe:js:animate-[hero-failsafe_0s_3s_forwards]">{word}</span>
           </span>{' '}
         </span>
       ))}

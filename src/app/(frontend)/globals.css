@@ -103,14 +103,10 @@
 }
 
 /* Éléments qui n'ont pas d'équivalent utilitaire simple */
-.nav-link {
-  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
-  transition: background-size 0.4s var(--ease-lux), color 0.2s;
-}
-.nav-link:hover, .nav-link:focus-visible { background-size: 100% 1px; }
-
 .hero-word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; margin-bottom: -0.08em; }
 .hero-word__inner { display: inline-block; }
+/* Filet de sécurité : si GSAP ne démarre pas, le titre apparaît quand même (une animation CSS l'emporte sur le style en ligne). */
+@keyframes hero-failsafe { to { translate: 0 0; } }
 
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
