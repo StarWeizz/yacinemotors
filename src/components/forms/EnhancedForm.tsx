@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useState, type FormEvent, type ReactNode } from 'react'
+import { createContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 
 export const FieldErrorsContext = createContext<Record<string, string>>({})
 
@@ -31,6 +31,13 @@ const NETWORK_ERROR = 'Une erreur réseau est survenue. Réessayez dans un insta
 export function EnhancedForm({ action, submitLabel, successMessage, children }: EnhancedFormProps) {
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const formRef = useRef<HTMLFormElement>(null)
+
+  // After server-side errors, move focus to the first field in error (WCAG 3.3.1 / 3.3.3).
+  useEffect(() => {
+    if (Object.keys(fieldErrors).length === 0) return
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+  }, [fieldErrors])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -64,7 +71,7 @@ export function EnhancedForm({ action, submitLabel, successMessage, children }: 
 
   return (
     <FieldErrorsContext.Provider value={fieldErrors}>
-      <form className="form" method="post" action={action} onSubmit={handleSubmit}>
+      <form ref={formRef} className="form" method="post" action={action} onSubmit={handleSubmit}>
         {children}
 
         {/* Honeypot: invisible to people and assistive technology, bots fill it in. */}
