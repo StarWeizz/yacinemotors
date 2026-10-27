@@ -24,6 +24,7 @@ const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap
 const JS_FLAG = "document.documentElement.classList.add('js')"
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL || 'http://localhost:3000'),
   title: {
     default: 'Yacine Motors — Location de véhicules à Marseille',
     template: '%s · Yacine Motors',

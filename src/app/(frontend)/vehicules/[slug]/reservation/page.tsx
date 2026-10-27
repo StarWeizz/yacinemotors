@@ -49,6 +49,9 @@ const ReservationPage = async ({ params, searchParams }: ReservationPageProps) =
       <div className="section-space grid items-start gap-[clamp(2rem,5vw,4rem)] md:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
         <aside className="flex flex-col gap-3 bg-pearl p-6" aria-label="Véhicule demandé">
           <h2 className="m-0 text-3xl">{getVehicleName(vehicle)}</h2>
+          <p className="m-0 text-sm">
+            <Link href={`/vehicules/${encodeURIComponent(vehicle.slug)}`}>Voir la fiche du véhicule</Link>
+          </p>
           <p className="m-0 text-sm text-steel">
             {vehicle.version} · {vehicle.year}
           </p>

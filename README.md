@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [25 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [26 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -14,9 +14,10 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 | F2 | **Catalogue** : les 10 véhicules avec toutes leurs informations (prix/jour, caution, km inclus, Crit'Air, équipements, disponibilité et date de retour, conditions du conducteur), avec filtres et tri (catégorie, carburant, boîte, prix max., disponibles, tri par prix/puissance/année) | `/vehicules` |
 | F3 | **Formulaire de contact** : chaque envoi arrive sur le Telegram de l'agence | `/contact` |
 | F4 | **Demande de réservation** : bouton « Demander une réservation » sur chaque véhicule, formulaire dédié, envoi sur Telegram | `/vehicules/[slug]/reservation` |
+| — | **Fiche véhicule** (bonus) : grande photo, description, caractéristiques, équipements, tarif avec exemples de durée, conditions, véhicules de la même catégorie | `/vehicules/[slug]` |
 | — | **Administration** : le gérant modifie véhicules, tarifs et informations d'agence sans développeur | `/admin` |
 
-Bonus traités : **tests automatisés** (59 unitaires, 36 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'accessibilité a été prise en compte (voir « Limites ») mais n'a pas fait l'objet d'un audit.
+Bonus traités : **tests automatisés** (59 unitaires, 43 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'accessibilité a été prise en compte (voir « Limites ») mais n'a pas fait l'objet d'un audit.
 
 ---
 
@@ -39,6 +40,7 @@ Copier `.env.example` en `.env` (jamais commité — `.gitignore`) :
 | `AUTO_SEED` | `true` (défaut dans Docker) : charge `vehicles.json` au démarrage si aucun véhicule n'existe | non |
 | `CATALOG_PATH` | Chemin du fichier chargé par l'amorce (défaut `sujet/vehicles.json`) | non |
 | `HTTP_PORT` | Port d'nginx sur la machine (défaut `8080`) | non |
+| `SITE_URL` | Adresse publique du site, pour les URL absolues d'aperçu de partage (défaut `http://localhost:8080` dans Docker) ; à régler sur le vrai domaine au déploiement | non |
 | `DATABASE_URI`, `DB_PORT` | Développement hors Docker uniquement | non |
 
 Sans les variables Telegram, le site fonctionne mais les formulaires répondent « n'a pas pu être envoyé » (ils ne simulent jamais un envoi).
@@ -193,7 +195,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 
 - Décisions d'architecture : Next.js + Payload CMS (choix hors sujet, pour que le client édite son site), PostgreSQL avec la perspective Supabase, Docker + nginx, GSAP, versionnement des migrations, CI.
 - Pilotage : validation de chaque étape avant de passer à la suivante, **fusion des PR uniquement après CI verte**.
-- Vérifications automatiques : 59 tests unitaires, 36 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
+- Vérifications automatiques : 59 tests unitaires, 43 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
 
 > **À compléter par le candidat avant le rendu** : ce qu'il a relu et réécrit lui-même ligne à ligne, et les points qu'il a testés à la main (par exemple un envoi réel avec son propre bot Telegram, qui n'a pas pu être fait dans l'environnement de l'agent faute de token).
 
@@ -239,7 +241,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 | Langue | Site en français ; code et commits en anglais ; documentation en français |
 | Informations d'agence absentes | Aucune adresse, téléphone ni horaire inventés |
 | Que faire si Telegram échoue | Le visiteur est averti et invité à réessayer ou à téléphoner ; jamais de faux succès |
-| Bonus choisis | Tests automatisés, anti-spam, filtres et tri du catalogue, plus l'idée personnelle (édition du catalogue par le client). Le déploiement en ligne n'a pas été réalisé |
+| Bonus choisis | Tests automatisés, anti-spam, filtres et tri du catalogue, page détail par véhicule, plus l'idée personnelle (édition du catalogue par le client). Le déploiement en ligne n'a pas été réalisé |
 
 ---
 
@@ -262,7 +264,6 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 1. Déploiement (par exemple application conteneurisée + Supabase pour la base, ADR dédié), HTTPS et HSTS.
 2. Remplacer les photos libres de Commons par celles de l'agence et renseigner ses coordonnées dans `/admin` (le pied de page s'adapte).
 3. Stocker les demandes (table Payload) pour ne rien perdre et permettre un suivi — en discuter avec le client, car cela réintroduit un back-office.
-4. Page détail par véhicule.
-5. Gérer les photos via la médiathèque Payload plutôt que par des fichiers dans `public/`.
-6. Audit d'accessibilité, CSP, renforcement anti-spam.
-7. Mise en cache des pages catalogue avec invalidation depuis Payload.
+4. Gérer les photos via la médiathèque Payload plutôt que par des fichiers dans `public/`.
+5. Audit d'accessibilité, CSP, renforcement anti-spam.
+6. Mise en cache des pages catalogue avec invalidation depuis Payload.
