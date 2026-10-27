@@ -1,4 +1,5 @@
 import { formatDate } from '@/lib/format'
+import { isAvailable } from '@/lib/vehicles/presentation'
 
 export type FieldErrors = Record<string, string>
 
@@ -153,12 +154,12 @@ export const validateReservation = (
   const start = parseIsoDate(input.startDate)
   const end = parseIsoDate(input.endDate)
   const todayTime = parseIsoDate(today) ?? 0
-  const isAvailable = vehicle.available !== false
-  const earliest = isAvailable || !vehicle.unavailableUntil
+  const available = isAvailable(vehicle)
+  const earliest = available || !vehicle.unavailableUntil
     ? todayTime
     : Math.max(todayTime, parseIsoDate(vehicle.unavailableUntil.slice(0, 10)) ?? 0)
 
-  if (!isAvailable && !vehicle.unavailableUntil) {
+  if (!available && !vehicle.unavailableUntil) {
     errors.startDate = "Ce véhicule n'est pas disponible actuellement."
   } else if (start === null) errors.startDate = 'Date de départ invalide.'
   else if (start < todayTime) errors.startDate = 'La date de départ ne peut pas être passée.'

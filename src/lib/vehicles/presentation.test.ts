@@ -3,6 +3,7 @@ import type { Vehicle } from '@/payload-types'
 import {
   getAvailabilityLabel,
   getConditions,
+  isAvailable,
   getRentalTerms,
   getVehicleName,
   pickFeatured,
@@ -90,5 +91,18 @@ describe('getRentalTerms', () => {
     const terms = getRentalTerms([vehicle({})])
     expect(terms?.maxMinimumAge).toBeNull()
     expect(terms?.maxMinimumLicenseYears).toBeNull()
+  })
+})
+
+describe('isAvailable', () => {
+  it('treats only an explicit false as unavailable', () => {
+    expect(isAvailable({ available: true })).toBe(true)
+    expect(isAvailable({ available: false })).toBe(false)
+    expect(isAvailable({ available: null })).toBe(true)
+    expect(isAvailable({})).toBe(true)
+  })
+
+  it('labels an unset flag as available, like the reservation button does', () => {
+    expect(getAvailabilityLabel({ available: null, unavailableUntil: null })).toBe('Disponible')
   })
 })

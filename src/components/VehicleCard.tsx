@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { Vehicle } from '@/payload-types'
 import { formatKilometers, formatPrice } from '@/lib/format'
-import { getConditions, getVehicleName } from '@/lib/vehicles/presentation'
+import { getConditions, getVehicleName, isAvailable } from '@/lib/vehicles/presentation'
 import { AvailabilityBadge } from './AvailabilityBadge'
 import { PriceAmount } from './PriceAmount'
 import { VehicleVisual } from './VehicleVisual'
@@ -95,7 +95,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           {formatKilometers(vehicle.includedKmPerDay)} inclus par jour · Caution{' '}
           {formatPrice(vehicle.deposit)}
         </p>
-        {(vehicle.available !== false || vehicle.unavailableUntil) && (
+        {(isAvailable(vehicle) || vehicle.unavailableUntil) && (
           <Link
             className="button self-start"
             href={`/vehicules/${encodeURIComponent(vehicle.slug)}/reservation`}

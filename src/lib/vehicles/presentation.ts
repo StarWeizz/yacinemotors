@@ -12,8 +12,11 @@ export const getConditions = ({ minimumAge, minimumLicenseYears }: Conditions): 
   return conditions
 }
 
+/** A vehicle is available unless it is explicitly marked otherwise (an unset flag means bookable). */
+export const isAvailable = ({ available }: Pick<Vehicle, 'available'>): boolean => available !== false
+
 export const getAvailabilityLabel = ({ available, unavailableUntil }: Availability): string => {
-  if (available) return 'Disponible'
+  if (isAvailable({ available })) return 'Disponible'
   return unavailableUntil
     ? `Indisponible jusqu'au ${formatDate(unavailableUntil)}`
     : 'Indisponible'
@@ -51,7 +54,7 @@ export const pickFeatured = (vehicles: readonly Vehicle[], limit: number): Vehic
   const seen = new Set<string>()
   const featured: Vehicle[] = []
   for (const vehicle of vehicles) {
-    if (!vehicle.available || seen.has(vehicle.category)) continue
+    if (!isAvailable(vehicle) || seen.has(vehicle.category)) continue
     seen.add(vehicle.category)
     featured.push(vehicle)
     if (featured.length === limit) break
