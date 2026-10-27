@@ -13,7 +13,7 @@ import { getVehicleBySlug } from '@/lib/vehicles/queries'
 
 type ReservationPageProps = {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ envoye?: string; erreur?: string }>
+  searchParams: Promise<{ envoye?: string; erreur?: string; sig?: string }>
 }
 
 export const generateMetadata = async ({ params }: ReservationPageProps): Promise<Metadata> => {
@@ -26,7 +26,7 @@ const SUCCESS =
 
 const ReservationPage = async ({ params, searchParams }: ReservationPageProps) => {
   const { slug } = await params
-  const { envoye, erreur } = await searchParams
+  const { envoye, erreur, sig } = await searchParams
   const vehicle = await getVehicleBySlug(slug)
   if (!vehicle) notFound()
 
@@ -76,7 +76,7 @@ const ReservationPage = async ({ params, searchParams }: ReservationPageProps) =
         </aside>
 
         <section aria-label="Formulaire de réservation">
-          <PageNotice sent={envoye} error={erreur} successMessage={SUCCESS} />
+          <PageNotice sent={envoye} error={erreur} signature={sig} successMessage={SUCCESS} />
           {bookable ? (
             <EnhancedForm action="/api/reservation" submitLabel="Envoyer la demande" successMessage={SUCCESS}>
               <input type="hidden" name="vehicleSlug" value={vehicle.slug} />

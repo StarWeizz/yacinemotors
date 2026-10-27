@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [27 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [28 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -17,7 +17,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 | — | **Fiche véhicule** (bonus) : grande photo, description, caractéristiques, équipements, tarif avec exemples de durée, conditions, véhicules de la même catégorie | `/vehicules/[slug]` |
 | — | **Administration** : le gérant modifie véhicules, tarifs et informations d'agence sans développeur | `/admin` |
 
-Bonus traités : **tests automatisés** (59 unitaires, 79 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'**accessibilité** a fait l'objet d'un audit WCAG 2.2 AA (axe-core sur 10 pages, contrôles manuels, 36 tests en CI) : voir [`docs/accessibilite.md`](docs/accessibilite.md), qui dit aussi ce qui n'est pas couvert.
+Bonus traités : **tests automatisés** (63 unitaires, 95 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'**accessibilité** a fait l'objet d'un audit WCAG 2.2 AA (axe-core sur 10 pages, contrôles manuels, 36 tests en CI) : voir [`docs/accessibilite.md`](docs/accessibilite.md), qui dit aussi ce qui n'est pas couvert.
 
 ---
 
@@ -196,7 +196,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 
 - Décisions d'architecture : Next.js + Payload CMS (choix hors sujet, pour que le client édite son site), PostgreSQL avec la perspective Supabase, Docker + nginx, GSAP, versionnement des migrations, CI.
 - Pilotage : validation de chaque étape avant de passer à la suivante, **fusion des PR uniquement après CI verte**.
-- Vérifications automatiques : 59 tests unitaires, 79 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
+- Vérifications automatiques : 63 tests unitaires, 95 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
 
 > **À compléter par le candidat avant le rendu** : ce qu'il a relu et réécrit lui-même ligne à ligne, et les points qu'il a testés à la main (par exemple un envoi réel avec son propre bot Telegram, qui n'a pas pu être fait dans l'environnement de l'agent faute de token).
 
@@ -211,17 +211,23 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 | **Spam des formulaires** | Champ piège invisible (succès simulé sans envoi), limitation de débit nginx par IP (très stricte sur `/api/contact` et `/api/reservation`), taille de corps limitée, validation stricte |
 | **CSRF** | Contrôle de l'en-tête `Origin` (ou `Sec-Fetch-Site`) sur les POST ; nginx transmet `X-Forwarded-Host` pour que la vérification fonctionne derrière le proxy |
 | **Manipulation du prix ou des conditions** | Le véhicule est relu en base ; prix, disponibilité, âge et permis minimum ne viennent jamais du formulaire (testé) |
-| **XSS** | React échappe les valeurs ; aucune injection de HTML brut ; les messages d'erreur transmis par redirection sont affichés comme du texte |
+| **XSS** | React échappe les valeurs ; aucune injection de HTML brut ; **Content Security Policy** stricte avec nonce par requête (pas de `unsafe-inline` pour les scripts), testée en E2E ([ADR-0028](docs/adr/0028-audit-de-securite-et-durcissement.md)) |
+| **Usurpation de contenu** (`?erreur=…`) | Les messages affichés après un envoi sans JavaScript sont **signés** (HMAC) : un texte forgé dans l'URL n'est jamais affiché |
 | **Dépôt public** | Aucun secret versionné ; valeurs de CI factices |
-| **Conteneurs** | Image multi-étapes, utilisateur non-root, base **non publiée** sur l'hôte (sauf opt-in explicite pour le développement) |
-| **Force brute sur l'admin** | Payload verrouille un compte après 5 échecs (10 minutes, réglage par défaut) ; limitation de débit générale nginx |
-| **Dépendances** | `npm audit` : voir « Limites » |
-| **En-têtes HTTP** | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, version de nginx masquée |
+| **Conteneurs** | Image multi-étapes, utilisateur non-root, `no-new-privileges`, capacités Linux retirées, système de fichiers de l'app en lecture seule, base **non publiée** sur l'hôte (sauf opt-in explicite pour le développement) |
+| **Force brute sur l'admin** | Verrouillage de compte après 5 échecs (10 minutes) ; limite nginx dédiée à la connexion (10 requêtes par minute, vérifiée : 429 dès la 6e) |
+| **Session de l'admin** | Cookie `HttpOnly` et `SameSite=Strict` (`Secure` en HTTPS), jeton absent des réponses JSON, requêtes authentifiées acceptées seulement depuis `SITE_URL` |
+| **Surface de l'API** | Pas de GraphQL (aucune route, et désactivé en configuration par précaution) ; écritures et liste des utilisateurs refusées aux anonymes (403, testé) ; corps limités à 32 Ko sur les formulaires |
+| **Dépendances** | `npm audit` bloquant en CI sur les alertes critiques, Dependabot ; alertes restantes : voir « Limites » |
+| **En-têtes HTTP** | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, CSP ; versions de nginx et de Next.js masquées |
+
+L'audit complet (méthode, constats corrigés, sondes sur la pile Docker, **risques restants** et ce qu'il ne couvre pas) est dans [`docs/securite.md`](docs/securite.md). Ce n'est pas un test d'intrusion.
 
 **À faire avant une mise en ligne** (non automatisé) :
 
 - **Créer immédiatement le compte administrateur.** Tant qu'aucun utilisateur n'existe, Payload propose à n'importe quel visiteur de `/admin` de créer le premier compte. Le déploiement doit donc être suivi sans délai de la création de l'admin (ou `/admin` restreint par IP / authentification nginx le temps de l'initialisation).
-- Servir en **HTTPS** (TLS n'est pas géré en local) puis ajouter HSTS.
+- Servir en **HTTPS** (TLS n'est pas géré en local), régler `SITE_URL` sur l'adresse `https://`, activer HSTS (ligne prête, commentée, dans `docker/nginx/security_headers`) et `upgrade-insecure-requests` dans la CSP.
+- Restreindre `/admin` (IP, VPN) si possible, et transmettre l'IP réelle à nginx derrière un proxy ou un CDN.
 - Choisir un `PAYLOAD_SECRET` et un mot de passe de base uniques, et ne jamais réutiliser ceux de développement.
 
 ---

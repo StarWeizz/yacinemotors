@@ -26,6 +26,11 @@ export default buildConfig({
   globals: [Agency],
   editor: lexicalEditor(),
   secret: requireEnv('PAYLOAD_SECRET'),
+  // The site never uses GraphQL: turning it off removes an endpoint (introspection, deep queries)
+  // that would otherwise need its own protection.
+  graphQL: { disable: true },
+  // Cookie-authenticated requests are only accepted from the site's own address when it is known.
+  csrf: process.env.SITE_URL ? [process.env.SITE_URL] : [],
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   db: postgresAdapter({
     pool: { connectionString: requireEnv('DATABASE_URI') },

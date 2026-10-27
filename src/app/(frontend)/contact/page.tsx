@@ -9,13 +9,13 @@ export const metadata: Metadata = {
 }
 
 type ContactPageProps = {
-  searchParams: Promise<{ envoye?: string; erreur?: string }>
+  searchParams: Promise<{ envoye?: string; erreur?: string; sig?: string }>
 }
 
 const SUCCESS = 'Merci, votre message a bien été envoyé. Nous vous répondons rapidement.'
 
 const ContactPage = async ({ searchParams }: ContactPageProps) => {
-  const { envoye, erreur } = await searchParams
+  const { envoye, erreur, sig } = await searchParams
 
   return (
     <div className="container-x">
@@ -25,7 +25,7 @@ const ContactPage = async ({ searchParams }: ContactPageProps) => {
       </header>
 
       <section className="section-space max-w-[720px]" aria-label="Formulaire de contact">
-        <PageNotice sent={envoye} error={erreur} successMessage={SUCCESS} />
+        <PageNotice sent={envoye} error={erreur} signature={sig} successMessage={SUCCESS} />
         <EnhancedForm action="/api/contact" submitLabel="Envoyer le message" successMessage={SUCCESS}>
           <Field name="name" label="Nom" required autoComplete="name" maxLength={100} />
           <Field name="email" label="E-mail" type="email" required autoComplete="email" maxLength={254} />
