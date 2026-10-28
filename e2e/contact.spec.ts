@@ -104,3 +104,67 @@ test.describe('contact API protections', () => {
     expect(response.ok()).toBe(true)
   })
 })
+
+test.describe('map next to the contact form', () => {
+  const GOOGLE_MAP = /^https:\/\/maps\.google\.com\/maps\?/
+
+  test('does not contact Google until the visitor asks for the map', async ({ page }) => {
+    const googleRequests: string[] = []
+    page.on('request', (request) => {
+      if (new URL(request.url()).hostname.endsWith('google.com')) googleRequests.push(request.url())
+    })
+    await page.goto('/contact')
+    await expect(page.getByText("L'afficher transmet votre adresse IP à Google")).toBeVisible()
+    await expect(page.locator('iframe')).toHaveCount(0)
+    expect(googleRequests).toEqual([])
+  })
+
+  test('shows a Google Maps frame centered on Marseille once requested', async ({ page }) => {
+    await page.route(GOOGLE_MAP, (route) =>
+      route.fulfill({ contentType: 'text/html', body: '<html><body>carte</body></html>' }),
+    )
+    const violations: string[] = []
+    page.on('console', (message) => {
+      if (/content security policy/i.test(message.text())) violations.push(message.text())
+    })
+    await page.goto('/contact')
+    await page.getByRole('button', { name: 'Afficher la carte' }).click()
+
+    const frame = page.locator('iframe[title^="Carte Google Maps"]')
+    await expect(frame).toBeVisible()
+    const source = (await frame.getAttribute('src')) ?? ''
+    expect(source).toMatch(GOOGLE_MAP)
+    expect(new URL(source).searchParams.get('q')).toBe('Marseille')
+    expect(new URL(source).searchParams.get('z')).toBe('12')
+    expect(violations).toEqual([])
+  })
+
+  test('sits beside the form on a wide screen and below it on a phone', async ({ page }) => {
+    await page.goto('/contact')
+    const form = page.getByRole('region', { name: 'Formulaire de contact' })
+    const map = page.getByRole('complementary', { name: /Carte/ })
+
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const [formWide, mapWide] = [await form.boundingBox(), await map.boundingBox()]
+    expect(mapWide?.x ?? 0).toBeGreaterThan((formWide?.x ?? 0) + (formWide?.width ?? 0) - 1)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    const [formNarrow, mapNarrow] = [await form.boundingBox(), await map.boundingBox()]
+    expect(mapNarrow?.y ?? 0).toBeGreaterThan((formNarrow?.y ?? 0) + (formNarrow?.height ?? 0) - 1)
+  })
+
+  test('without JavaScript the link to Google Maps remains', async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false })
+    const page = await context.newPage()
+    await page.goto('/contact')
+    await expect(page.getByRole('button', { name: 'Afficher la carte' })).toBeHidden()
+    await expect(page.getByRole('link', { name: /dans Google Maps/ })).toHaveAttribute('href', /google\.com\/maps\/search\/\?api=1&query=Marseille/)
+    await context.close()
+  })
+
+  test('other pages may not embed any frame', async ({ request }) => {
+    const policy = (path: string) => request.get(path).then((response) => response.headers()['content-security-policy'] ?? '')
+    expect(await policy('/contact')).toContain('frame-src https://maps.google.com https://www.google.com')
+    expect(await policy('/vehicules')).toContain("frame-src 'none'")
+  })
+})

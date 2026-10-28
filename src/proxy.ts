@@ -10,6 +10,9 @@ import type { NextRequest } from 'next/server'
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
   const isDev = process.env.NODE_ENV === 'development'
+  // The contact page is the only one allowed to embed a frame (the Google Maps map, ADR-0029).
+  const frameSrc =
+    request.nextUrl.pathname === '/contact' ? 'https://maps.google.com https://www.google.com' : "'none'"
 
   const csp = [
     "default-src 'self'",
@@ -18,6 +21,7 @@ export function proxy(request: NextRequest) {
     "img-src 'self' data: blob:",
     "font-src 'self'",
     "connect-src 'self'",
+    `frame-src ${frameSrc}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
