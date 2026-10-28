@@ -39,3 +39,4 @@ Ce fichier est généré : `npm run adr:index`.
 | [0031](0031-node-24-pour-l-image-la-ci-et-le-developpement.md) | Node 24 pour l'image, la CI et le développement | Accepté — complète l'ADR-0030 | 2026-10-28 |
 | [0032](0032-polices-hebergees-dans-le-depot.md) | Polices hébergées dans le dépôt | Accepté — complète l'ADR-0022 et l'ADR-0024 (typographie) | 2026-10-28 |
 | [0033](0033-icone-robots-sitemap-et-pages-legales.md) | Icône, robots.txt, sitemap.xml et pages légales | Accepté | 2026-10-28 |
+| [0034](0034-licence-mit.md) | Licence MIT | Accepté | 2026-10-29 |
