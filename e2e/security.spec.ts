@@ -24,7 +24,7 @@ test.describe('Content Security Policy', () => {
     expect(first).not.toBe(second)
   })
 
-  for (const path of ['/', '/vehicules', '/vehicules/bmw-m4-competition', '/contact', '/credits-photos']) {
+  for (const path of ['/', '/vehicules', '/vehicules/bmw-m4-competition', '/contact', '/credits-photos', '/mentions-legales', '/confidentialite']) {
     test(`no policy violation and the page still works: ${path}`, async ({ page }) => {
       const violations: string[] = []
       page.on('console', (message) => {
