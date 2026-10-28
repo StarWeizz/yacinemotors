@@ -39,6 +39,30 @@ const CreditsPage = () => (
         </li>
       ))}
     </ul>
+
+    <section aria-labelledby="autres-credits" className="mt-14 flex max-w-[70ch] flex-col gap-3 text-sm leading-relaxed">
+      <h2 id="autres-credits" className="m-0 text-3xl">
+        Autres crédits
+      </h2>
+      <p className="m-0 text-steel">
+        <strong className="font-semibold text-ink">Icône du site</strong> : pictogramme « car » de{' '}
+        <a href="https://tabler.io/icons" rel="noopener noreferrer">
+          Tabler Icons
+        </a>{' '}
+        (Paweł Kuna), licence{' '}
+        <a href="https://opensource.org/license/mit" rel="noopener noreferrer">
+          MIT
+        </a>
+        .
+      </p>
+      <p className="m-0 text-steel">
+        <strong className="font-semibold text-ink">Polices</strong> : Newsreader et Inter, sous{' '}
+        <a href="https://openfontlicense.org" rel="noopener noreferrer">
+          SIL Open Font License 1.1
+        </a>
+        , hébergées sur ce site.
+      </p>
+    </section>
   </div>
 )
 

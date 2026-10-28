@@ -11,6 +11,8 @@ const PAGES = [
   '/vehicules/renault-clio-tce-90/reservation',
   '/contact',
   '/credits-photos',
+  '/mentions-legales',
+  '/confidentialite',
   '/adresse-inconnue',
 ]
 
@@ -52,7 +54,7 @@ test('the home page has no violation once its animations have finished', async (
 })
 
 test.describe('what automated tools do not check', () => {
-  for (const path of PAGES.slice(0, 9)) {
+  for (const path of PAGES.filter((page) => page !== '/adresse-inconnue')) {
     test(`reflows at 320 px without horizontal scroll: ${path}`, async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 640 })
       await page.goto(path)

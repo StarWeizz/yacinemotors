@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [ADR numérotés, avec index](docs/adr/README.md) · Audits : [accessibilité](docs/accessibilite.md), [sécurité](docs/securite.md) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [ADR numérotés, avec index](docs/adr/README.md) · Audits : [accessibilité](docs/accessibilite.md), [sécurité](docs/securite.md) · [Licences tierces](docs/licences-tierces.md) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -15,9 +15,10 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 | F3 | **Formulaire de contact** : chaque envoi arrive sur le Telegram de l'agence ; carte Google Maps centrée sur Marseille à côté du formulaire (chargée au clic, [ADR-0029](docs/adr/0029-carte-google-maps-sur-la-page-contact.md)) | `/contact` |
 | F4 | **Demande de réservation** : bouton « Demander une réservation » sur chaque véhicule, formulaire dédié, envoi sur Telegram | `/vehicules/[slug]/reservation` |
 | — | **Fiche véhicule** (bonus) : grande photo, description, caractéristiques, équipements, tarif avec exemples de durée, conditions, véhicules de la même catégorie | `/vehicules/[slug]` |
+| — | **Pages légales** : mentions légales et politique de confidentialité (le site est une démonstration, l'agence est fictive), icône du site, `robots.txt` et `sitemap.xml` ([ADR-0033](docs/adr/0033-icone-robots-sitemap-et-pages-legales.md)) | `/mentions-legales`, `/confidentialite`, `/robots.txt`, `/sitemap.xml` |
 | — | **Administration** : le gérant modifie véhicules, tarifs et informations d'agence sans développeur | `/admin` |
 
-Bonus traités : **tests automatisés** (63 unitaires, 100 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'**accessibilité** a fait l'objet d'un audit WCAG 2.2 AA (axe-core sur 10 pages, contrôles manuels, 36 tests en CI) : voir [`docs/accessibilite.md`](docs/accessibilite.md), qui dit aussi ce qui n'est pas couvert.
+Bonus traités : **tests automatisés** (68 unitaires, 117 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'**accessibilité** a fait l'objet d'un audit WCAG 2.2 AA (axe-core sur 10 pages, contrôles manuels, 36 tests en CI) : voir [`docs/accessibilite.md`](docs/accessibilite.md), qui dit aussi ce qui n'est pas couvert.
 
 ---
 
@@ -246,7 +247,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 
 - Décisions d'architecture : Next.js + Payload CMS (choix hors sujet, pour que le client édite son site), PostgreSQL avec la perspective Supabase, Docker + nginx, GSAP, versionnement des migrations, CI.
 - Pilotage : validation de chaque étape avant de passer à la suivante, **fusion des PR uniquement après CI verte**.
-- Vérifications automatiques : 63 tests unitaires, 100 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
+- Vérifications automatiques : 68 tests unitaires, 117 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
 
 > **Supervision et vérifications du candidat** : le candidat a supervisé le travail de l'agent du début à la fin, vérifié le résultat et l'a testé à la main sur l'application lancée : **les demandes de réservation, la page contact et le back-office `/admin`** (ainsi que le reste du site) ; tout a fonctionné correctement. Il a aussi fait un **envoi réel avec son propre bot Telegram** : les messages du formulaire de contact et des demandes de réservation arrivent bien dans sa conversation avec le bot. Cela complète les tests automatiques de l'agent, qui n'ont jamais pu appeler la vraie API Telegram (aucun token dans son environnement) et passent par un faux serveur.
 

@@ -78,23 +78,29 @@ const ReservationPage = async ({ params, searchParams }: ReservationPageProps) =
         <section aria-label="Formulaire de réservation">
           <PageNotice sent={envoye} error={erreur} signature={sig} successMessage={SUCCESS} />
           {bookable ? (
-            <EnhancedForm action="/api/reservation" submitLabel="Envoyer la demande" successMessage={SUCCESS}>
-              <input type="hidden" name="vehicleSlug" value={vehicle.slug} />
-              <div className="flex flex-wrap gap-5 *:min-w-[180px]">
-                <Field name="startDate" label="Départ" type="date" required min={todayInMarseille()} />
-                <Field name="endDate" label="Retour" type="date" required min={todayInMarseille()} />
-              </div>
-              <Field name="name" label="Nom" required autoComplete="name" maxLength={100} />
-              <div className="flex flex-wrap gap-5 *:min-w-[180px]">
-                <Field name="email" label="E-mail" type="email" required autoComplete="email" maxLength={254} />
-                <Field name="phone" label="Téléphone" type="tel" required autoComplete="tel" maxLength={20} />
-              </div>
-              <div className="flex flex-wrap gap-5 *:min-w-[180px]">
-                <Field name="driverAge" label="Âge du conducteur" type="number" required min={18} max={99} />
-                <Field name="licenseYears" label="Années de permis" type="number" required min={0} max={80} />
-              </div>
-              <Field name="message" label="Message" type="textarea" rows={3} maxLength={1000} />
-            </EnhancedForm>
+            <>
+              <EnhancedForm action="/api/reservation" submitLabel="Envoyer la demande" successMessage={SUCCESS}>
+                <input type="hidden" name="vehicleSlug" value={vehicle.slug} />
+                <div className="flex flex-wrap gap-5 *:min-w-[180px]">
+                  <Field name="startDate" label="Départ" type="date" required min={todayInMarseille()} />
+                  <Field name="endDate" label="Retour" type="date" required min={todayInMarseille()} />
+                </div>
+                <Field name="name" label="Nom" required autoComplete="name" maxLength={100} />
+                <div className="flex flex-wrap gap-5 *:min-w-[180px]">
+                  <Field name="email" label="E-mail" type="email" required autoComplete="email" maxLength={254} />
+                  <Field name="phone" label="Téléphone" type="tel" required autoComplete="tel" maxLength={20} />
+                </div>
+                <div className="flex flex-wrap gap-5 *:min-w-[180px]">
+                  <Field name="driverAge" label="Âge du conducteur" type="number" required min={18} max={99} />
+                  <Field name="licenseYears" label="Années de permis" type="number" required min={0} max={80} />
+                </div>
+                <Field name="message" label="Message" type="textarea" rows={3} maxLength={1000} />
+              </EnhancedForm>
+              <p className="mt-4 mb-0 text-sm text-steel">
+                Vos données servent uniquement à répondre à votre demande et ne sont pas conservées par le site.{' '}
+                <Link href="/confidentialite">Politique de confidentialité</Link>
+              </p>
+            </>
           ) : (
             <p className="notice notice-error">
               Ce véhicule n&apos;est pas disponible actuellement. <Link href="/contact">Contactez-nous</Link>{' '}
