@@ -45,7 +45,7 @@ const MentionsLegalesPage = () => (
 
     <LegalSection id="propriete" title="Propriété intellectuelle et crédits">
       <p className="m-0">
-        Le code source est consultable sur le dépôt GitHub ci-dessus. Les éléments tiers sont utilisés
+        Le code source est consultable sur le dépôt GitHub ci-dessus, sous licence MIT. Les éléments tiers sont utilisés
         sous licence libre : photographies (Wikimedia Commons, CC BY-SA), polices Newsreader et Inter
         (SIL Open Font License 1.1) et icône du site (Tabler Icons, licence MIT). Les auteurs et les
         licences sont indiqués sur la page <Link href="/credits-photos">Crédits photos</Link>.
