@@ -225,6 +225,7 @@ Demande : « Ouvre la PR et lance la code review », puis « installe GH et corr
 - Demande : « Trie les PR Dependabot », puis « Fais les 3 » (fusionner les mises à jour d'actions, fermer les inutilisables avec une règle durable, préparer le passage à Node 24).
 - **Tri fait avec des preuves, pas au feu vert de la CI** : pour chaque PR, statut, fichiers, journaux des échecs, contraintes de paquets (`engines`, `peerDependencies` dans `node_modules`) et ce que la CI exécute réellement. Constats : `graphql` 17 et `typescript` 7 échouent à l'installation (Payload exige `graphql ^16.8.1`, `typescript-eslint` exige `typescript <6.1.0`) ; `@types/node` 26 et `node` 26 sont **verts mais non démontrés** : les E2E tournent sous Node 22 sur l'hôte et le job Docker construit l'image sans la lancer ; l'étape `upload-artifact@v7` de la PR n°14 a été **sautée** (elle ne tourne qu'en cas d'échec), donc le vert ne la prouve pas.
 - **Exécution** : #15, #16, #14 fusionnées une à une ; #17 est devenue conflictuelle après les autres (même fichier) → rebase demandé à Dependabot. #18, #19 et #20 fermées avec un message d'explication. Règle versionnée dans `.github/dependabot.yml` (ADR-0030) pour que ces montées majeures ne reviennent pas.
+
 ## 24. Passage à Node 24
 
 - Suite du tri Dependabot (« Fais les 3 », point 3). Décision : ADR-0031. Plutôt que de fusionner la PR « Node 26 » (verte mais non démontrée), passage volontaire à **Node 24** pour l'image, la CI, `engines` et le README en une seule PR.
