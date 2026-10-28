@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
-import { Inter, Newsreader } from 'next/font/google'
+import localFont from 'next/font/local'
 import type { ReactNode } from 'react'
 import { Cursor } from '@/components/Cursor'
 import { SiteFooter } from '@/components/SiteFooter'
@@ -11,14 +11,21 @@ import './globals.css'
 
 export const dynamic = 'force-dynamic'
 
-// Hébergées avec l'application au build (pas d'appel à Google à la visite). ADR-0022.
-const display = Newsreader({
-  subsets: ['latin'],
-  axes: ['opsz'],
+// Polices hébergées dans le dépôt (src/app/fonts, licence OFL) : le build n'a besoin d'aucun accès
+// réseau et la visite n'appelle aucun service tiers. Axes variables : graisse, et taille optique
+// pour Newsreader. ADR-0022, ADR-0032.
+const display = localFont({
+  src: '../fonts/newsreader-latin-opsz-normal.woff2',
+  weight: '200 800',
   variable: '--font-display',
   display: 'swap',
 })
-const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
+const body = localFont({
+  src: '../fonts/inter-latin-wght-normal.woff2',
+  weight: '100 900',
+  variable: '--font-body',
+  display: 'swap',
+})
 
 // Marque la page « JS actif » avant le premier rendu, pour que les animations d'entrée
 // partent de l'état masqué sans clignotement. Sans JavaScript, tout reste visible.
