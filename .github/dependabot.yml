@@ -9,10 +9,23 @@ updates:
     groups:
       payload:
         patterns: ['payload', '@payloadcms/*']
+    # Major versions of these are held back on purpose (ADR-0030): each one conflicts with a
+    # pinned peer range today, or must follow the Node version the project runs.
+    ignore:
+      - dependency-name: graphql # payload and @payloadcms/* require ^16.8.1
+        update-types: ['version-update:semver-major']
+      - dependency-name: typescript # typescript-eslint requires <6.1.0
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/node' # keep the same major as the Node version run in production
+        update-types: ['version-update:semver-major']
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
+    # Moving to another Node major is a deliberate change (CI, types and image together).
+    ignore:
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -23,7 +23,7 @@ Bonus traités : **tests automatisés** (63 unitaires, 100 E2E, CI GitHub Action
 
 ## Installation et lancement
 
-Prérequis : Docker (et Node.js ≥ 20.9 pour le développement hors conteneur).
+Prérequis : Docker (et Node.js ≥ 24.22.1 pour le développement hors conteneur, la version exigée par Payload et utilisée par l'image et la CI).
 
 ### Démarrage rapide (Docker)
 
