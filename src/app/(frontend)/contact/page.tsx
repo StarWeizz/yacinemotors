@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { EnhancedForm } from '@/components/forms/EnhancedForm'
 import { Field } from '@/components/forms/Field'
 import { PageNotice } from '@/components/forms/PageNotice'
@@ -39,6 +40,10 @@ const ContactPage = async ({ searchParams }: ContactPageProps) => {
             <Field name="phone" label="Téléphone" type="tel" autoComplete="tel" maxLength={20} />
             <Field name="message" label="Message" type="textarea" required maxLength={2000} />
           </EnhancedForm>
+          <p className="mt-4 mb-0 text-sm text-steel">
+            Vos données servent uniquement à répondre à votre demande et ne sont pas conservées par le site.{' '}
+            <Link href="/confidentialite">Politique de confidentialité</Link>
+          </p>
         </section>
 
         <aside aria-label={`Carte : ${agency.city}`} className="lg:sticky lg:top-28">

@@ -89,9 +89,15 @@ export function SiteFooter({ agency, terms }: SiteFooterProps) {
       <div className="border-t border-graphite">
         <div className="container-x flex flex-wrap justify-between gap-x-8 gap-y-2 py-6 text-[0.8rem]">
           <p className="m-0">
-            © {new Date().getFullYear()} {agency.name}. Tous droits réservés.
+            © {new Date().getFullYear()} {agency.name}. Site de démonstration : agence fictive.
           </p>
-          <p className="m-0">
+          <p className="m-0 flex flex-wrap gap-x-5 gap-y-1">
+            <Link className={linkClass} href="/mentions-legales">
+              Mentions légales
+            </Link>
+            <Link className={linkClass} href="/confidentialite">
+              Confidentialité
+            </Link>
             <Link className={linkClass} href="/credits-photos">
               Crédits photos
             </Link>
