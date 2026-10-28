@@ -1,5 +1,7 @@
 # Licences des éléments tiers
 
+Le **code** du projet est sous licence MIT (fichier `LICENSE`, [ADR-0034](adr/0034-licence-mit.md)). Cette licence ne s'applique pas aux éléments ci-dessous, qui gardent la leur.
+
 Le site réutilise quelques éléments libres. Les auteurs sont aussi crédités sur la page publique `/credits-photos`.
 
 | Élément | Source | Licence | Où |
