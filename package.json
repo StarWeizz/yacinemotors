@@ -17,7 +17,8 @@
     "seed": "payload run scripts/seed.ts",
     "migrate:status": "payload migrate:status",
     "migrate:down": "payload migrate:down",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "adr:index": "node scripts/adr-index.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
