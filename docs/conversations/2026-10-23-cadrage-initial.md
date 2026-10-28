@@ -241,3 +241,11 @@ Demande : « Ouvre la PR et lance la code review », puis « installe GH et corr
 - **Autres constats** : `npx playwright install` (navigateurs) n'était pas mentionné ; aucune commande pour arrêter ou réinitialiser la pile ; message d'erreur des formulaires qui parlait de « contactez-nous par téléphone » alors que le site n'affiche aucun numéro tant que le gérant n'en a pas saisi.
 - **Fragilité découverte en chemin** : le premier `npm run build` du clone neuf a échoué en tentant de télécharger Newsreader depuis Google Fonts (réseau momentanément indisponible). Rejoué : OK. Plutôt que de le noter comme limite, correction : polices hébergées dans le dépôt (ADR-0032), build vérifié sans accès à Google, rendu identique sur capture.
 - Après ces vérifications, `npm test` (63) et `npm run test:e2e` (100) passent depuis le clone neuf.
+
+## 26. Fusion des PR en attente, README complété, index des ADR
+
+- Demande : « Oui, fais-le dans cet ordre qu'on termine le projet » : fusionner #22 (Dependabot), #23 (Node 24), #24 (polices), puis ouvrir la PR du README.
+- **Conflits prévisibles résolus à la main** : #23 et #24 modifiaient toutes deux la fin de ce journal (chacune y ajoutait sa section) ; après la fusion de la première, GitHub les a marquées « CONFLICTING ». Résolution locale (`git merge master`, conservation des deux sections dans l'ordre, ligne vide rétablie), CI relancée et verte avant chaque fusion. La CI de #23 a tourné sous Node 24 : lint, types, tests, build, migrations et E2E verts.
+- **README** : démarrage rapide (secrets générés et mots de passe synchronisés par une commande `sed` testée), ordre corrigé du développement local, commandes complétées, section de dépannage, mentions périmées retirées. Vérifié depuis des clones neufs (Docker et local), y compris `down` puis `up` (base conservée, pas de rechargement du catalogue).
+- **Index des ADR** généré par `npm run adr:index` (32 décisions) ; règle ajoutée à `CLAUDE.md` : régénérer l'index après chaque nouvel ADR.
+- Constat honnête : le README ne prétend toujours pas ce qui n'est pas fait (pas de déploiement, pas de stockage des demandes, accessibilité testée par outil seulement).

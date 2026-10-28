@@ -36,6 +36,6 @@ export async function POST(request: Request): Promise<Response> {
         request,
         page,
         503,
-        "La demande n'a pas pu être envoyée. Réessayez plus tard ou contactez-nous par téléphone.",
+        "La demande n'a pas pu être envoyée. Réessayez dans quelques minutes.",
       )
 }

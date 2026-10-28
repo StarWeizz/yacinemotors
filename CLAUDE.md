@@ -45,6 +45,7 @@ React + TypeScript (strict) · Next.js · Payload CMS (headless, gestion utilisa
 - Chaque décision (technique, architecture, process, produit) a un ADR dans `docs/adr/`, nommé `NNNN-titre-court.md`, basé sur `docs/adr/0000-template.md`.
 - **Ne jamais supprimer ni réécrire un ADR.** Si une décision change, on crée un nouvel ADR qui remplace l'ancien ; on ne modifie dans l'ancien que la ligne `Statut` (`Remplacé par ADR-NNNN`).
 - Toute règle donnée par l'utilisateur dans la conversation et absente des ADR doit y être consignée.
+- Après avoir ajouté un ADR, régénérer l'index : `npm run adr:index` (fichier `docs/adr/README.md`).
 
 ### 4. Log des conversations
 - Conserver un log des échanges humain ↔ IA dans `docs/conversations/` (un fichier par session/sujet, `AAAA-MM-JJ-sujet.md`).
