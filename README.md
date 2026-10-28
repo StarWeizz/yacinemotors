@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [28 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [29 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -12,12 +12,12 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 |---|---|---|
 | F1 | **Page d'accueil** : présentation de l'agence, chiffres calculés depuis le catalogue, sélection de véhicules | `/` |
 | F2 | **Catalogue** : les 10 véhicules avec toutes leurs informations (prix/jour, caution, km inclus, Crit'Air, équipements, disponibilité et date de retour, conditions du conducteur), avec filtres et tri (catégorie, carburant, boîte, prix max., disponibles, tri par prix/puissance/année) | `/vehicules` |
-| F3 | **Formulaire de contact** : chaque envoi arrive sur le Telegram de l'agence | `/contact` |
+| F3 | **Formulaire de contact** : chaque envoi arrive sur le Telegram de l'agence ; carte Google Maps centrée sur Marseille à côté du formulaire (chargée au clic, [ADR-0029](docs/adr/0029-carte-google-maps-sur-la-page-contact.md)) | `/contact` |
 | F4 | **Demande de réservation** : bouton « Demander une réservation » sur chaque véhicule, formulaire dédié, envoi sur Telegram | `/vehicules/[slug]/reservation` |
 | — | **Fiche véhicule** (bonus) : grande photo, description, caractéristiques, équipements, tarif avec exemples de durée, conditions, véhicules de la même catégorie | `/vehicules/[slug]` |
 | — | **Administration** : le gérant modifie véhicules, tarifs et informations d'agence sans développeur | `/admin` |
 
-Bonus traités : **tests automatisés** (63 unitaires, 95 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'**accessibilité** a fait l'objet d'un audit WCAG 2.2 AA (axe-core sur 10 pages, contrôles manuels, 36 tests en CI) : voir [`docs/accessibilite.md`](docs/accessibilite.md), qui dit aussi ce qui n'est pas couvert.
+Bonus traités : **tests automatisés** (63 unitaires, 100 E2E, CI GitHub Actions) et **protection anti-spam** (honeypot, contrôle d'origine, limitation de débit nginx) et **filtres et tri du catalogue** ([ADR-0021](docs/adr/0021-filtres-et-tri-du-catalogue.md)) et **page détail par véhicule** ([ADR-0026](docs/adr/0026-page-detail-par-vehicule.md)). Idée personnelle : l'édition du catalogue par le client via Payload CMS, et un formulaire de réservation qui applique les conditions de chaque véhicule (voir « Choix face aux points flous »). L'**accessibilité** a fait l'objet d'un audit WCAG 2.2 AA (axe-core sur 10 pages, contrôles manuels, 36 tests en CI) : voir [`docs/accessibilite.md`](docs/accessibilite.md), qui dit aussi ce qui n'est pas couvert.
 
 ---
 
@@ -196,9 +196,9 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 
 - Décisions d'architecture : Next.js + Payload CMS (choix hors sujet, pour que le client édite son site), PostgreSQL avec la perspective Supabase, Docker + nginx, GSAP, versionnement des migrations, CI.
 - Pilotage : validation de chaque étape avant de passer à la suivante, **fusion des PR uniquement après CI verte**.
-- Vérifications automatiques : 63 tests unitaires, 95 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
+- Vérifications automatiques : 63 tests unitaires, 100 E2E (stables sur 3 répétitions), lint, types, build Docker, migrations sur base vide, contrôles réseau derrière nginx (origine, limitation de débit).
 
-> **À compléter par le candidat avant le rendu** : ce qu'il a relu et réécrit lui-même ligne à ligne, et les points qu'il a testés à la main (par exemple un envoi réel avec son propre bot Telegram, qui n'a pas pu être fait dans l'environnement de l'agent faute de token).
+> **Supervision et vérifications du candidat** : le candidat a supervisé le travail de l'agent du début à la fin, vérifié le résultat et l'a testé à la main sur l'application lancée : **les demandes de réservation, la page contact et le back-office `/admin`** (ainsi que le reste du site) ; tout a fonctionné correctement. Il a aussi fait un **envoi réel avec son propre bot Telegram** : les messages du formulaire de contact et des demandes de réservation arrivent bien dans sa conversation avec le bot. Cela complète les tests automatiques de l'agent, qui n'ont jamais pu appeler la vraie API Telegram (aucun token dans son environnement) et passent par un faux serveur.
 
 ---
 
@@ -212,6 +212,7 @@ Navigateur ──POST──▶ nginx ──▶ route /api/contact ou /api/reserv
 | **CSRF** | Contrôle de l'en-tête `Origin` (ou `Sec-Fetch-Site`) sur les POST ; nginx transmet `X-Forwarded-Host` pour que la vérification fonctionne derrière le proxy |
 | **Manipulation du prix ou des conditions** | Le véhicule est relu en base ; prix, disponibilité, âge et permis minimum ne viennent jamais du formulaire (testé) |
 | **XSS** | React échappe les valeurs ; aucune injection de HTML brut ; **Content Security Policy** stricte avec nonce par requête (pas de `unsafe-inline` pour les scripts), testée en E2E ([ADR-0028](docs/adr/0028-audit-de-securite-et-durcissement.md)) |
+| **Contenu tiers (carte Google)** | La carte n'est chargée qu'après un clic (sinon l'adresse IP du visiteur partirait chez Google dès l'ouverture de la page) ; `frame-src` de la CSP n'autorise Google que sur `/contact`, `'none'` partout ailleurs |
 | **Usurpation de contenu** (`?erreur=…`) | Les messages affichés après un envoi sans JavaScript sont **signés** (HMAC) : un texte forgé dans l'URL n'est jamais affiché |
 | **Dépôt public** | Aucun secret versionné ; valeurs de CI factices |
 | **Conteneurs** | Image multi-étapes, utilisateur non-root, `no-new-privileges`, capacités Linux retirées, système de fichiers de l'app en lecture seule, base **non publiée** sur l'hôte (sauf opt-in explicite pour le développement) |
@@ -258,7 +259,7 @@ L'audit complet (méthode, constats corrigés, sondes sur la pile Docker, **risq
 
 - **Aucune demande n'est stockée** : si Telegram est indisponible au moment de l'envoi, la demande est perdue (le visiteur en est averti).
 - **Anti-spam de niveau modéré** : un robot qui ignore le honeypot et reste sous la limite nginx peut passer. À renforcer (captcha respectueux de la vie privée) si du spam apparaît.
-- **Pas testé avec un vrai bot** dans l'environnement de développement de l'agent (pas de token) ; la couche Telegram est couverte par des tests unitaires et un faux serveur conforme à la documentation.
+- **Telegram : testé en réel par le candidat seulement** (un bot, une conversation privée, envois de contact et de réservation reçus). Les tests automatiques de l'agent n'appellent jamais la vraie API : tests unitaires et faux serveur conforme à la documentation. Pas de test de charge ni de cas d'échec réel (token révoqué, Telegram indisponible) en conditions réelles.
 - **Vulnérabilités de dépendances** : `npm audit --omit=dev` signale 8 alertes (3 élevées, 5 modérées) après correction de la critique (`dompurify`, forcé à la version corrigée par un `override`). Elles sont **transitives via Payload** : l'éditeur riche Lexical (`happy-dom`, côté administration) et des outils de développement (`esbuild`, `drizzle-kit`). Elles ne concernent pas les pages publiques ; la correction passe par une mise à jour de Payload.
 - **Pas de CSP ni de HSTS** ; TLS non géré localement.
 - **Migrations concurrentes** : avec plusieurs instances démarrant en même temps, les migrations pourraient s'exécuter simultanément (une seule instance aujourd'hui).
