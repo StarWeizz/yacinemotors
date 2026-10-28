@@ -25,6 +25,6 @@ export async function POST(request: Request): Promise<Response> {
         request,
         PAGE,
         503,
-        "Le message n'a pas pu être envoyé. Réessayez plus tard ou contactez-nous par téléphone.",
+        "Le message n'a pas pu être envoyé. Réessayez dans quelques minutes.",
       )
 }
