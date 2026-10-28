@@ -64,6 +64,7 @@ test.describe('legal pages', () => {
     await expect(main).toContainText("l'agence qu'il présente n'existe pas")
     await expect(main.getByRole('heading', { level: 2, name: 'Éditeur et responsable de la publication' })).toBeVisible()
     await expect(main.getByRole('heading', { level: 2, name: 'Hébergement' })).toBeVisible()
+    await expect(main).toContainText('sous licence MIT')
     await expect(main).toContainText('Tabler Icons')
     await expect(main).toContainText('Wikimedia Commons')
     await expect(main.getByRole('link', { name: 'Crédits photos' })).toHaveAttribute('href', '/credits-photos')

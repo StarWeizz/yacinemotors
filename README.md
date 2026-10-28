@@ -304,6 +304,12 @@ L'audit complet (méthode, constats corrigés, sondes sur la pile Docker, **risq
 
 ---
 
+## Licence
+
+Le **code** est sous [licence MIT](LICENSE) ([ADR-0034](docs/adr/0034-licence-mit.md)). Les éléments tiers gardent leur licence : photographies (CC BY-SA 4.0), polices (SIL OFL 1.1) et icône (MIT, Tabler Icons), voir [`docs/licences-tierces.md`](docs/licences-tierces.md). Les données d'exemple de `sujet/` appartiennent à leur auteur.
+
+---
+
 ## Limites et suites
 
 **Limites connues**
