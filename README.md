@@ -4,7 +4,7 @@ Site de l'agence de location de véhicules **Yacine Motors** (Marseille) — tes
 
 - Sujet et données fournies : [`sujet/`](sujet/) (`vehicles.json` est utilisé tel quel, jamais modifié).
 - Dépôt : https://github.com/StarWeizz/yacinemotors
-- Décisions : [29 ADR](docs/adr/) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
+- Décisions : [ADR numérotés, avec index](docs/adr/README.md) · Audits : [accessibilité](docs/accessibilite.md), [sécurité](docs/securite.md) · Journal des échanges avec l'IA : [`docs/conversations/`](docs/conversations/) · Règles données à l'IA : [`CLAUDE.md`](CLAUDE.md)
 
 ## Ce que fait le site
 
@@ -24,6 +24,18 @@ Bonus traités : **tests automatisés** (63 unitaires, 100 E2E, CI GitHub Action
 ## Installation et lancement
 
 Prérequis : Docker (et Node.js ≥ 20.9 pour le développement hors conteneur).
+
+### Démarrage rapide (Docker)
+
+```bash
+git clone https://github.com/StarWeizz/yacinemotors.git && cd yacinemotors
+cp .env.example .env
+# Secrets aléatoires : un même mot de passe pour POSTGRES_PASSWORD et DATABASE_URI, un nouveau PAYLOAD_SECRET
+sed -i.bak "s/change-me-to-a-long-random-string/$(openssl rand -hex 32)/; s/change-me/$(openssl rand -hex 16)/g" .env && rm .env.bak
+docker compose up -d --build      # PostgreSQL + application + nginx, migrations et catalogue automatiques
+```
+
+Puis ouvrir http://localhost:8080 (le site) et http://localhost:8080/admin (créer le **premier compte administrateur**, voir plus bas). Sans Windows/WSL/Git Bash, remplacer à la main les valeurs `change-me…` de `.env`. Les messages Telegram demandent en plus `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID` (voir « Configurer le bot Telegram »).
 
 ### Variables d'environnement
 
@@ -66,16 +78,32 @@ Au **premier démarrage**, le catalogue (`vehicles.json`) est chargé automatiqu
 
 Une fois le catalogue du client en place, mettre `AUTO_SEED=false` dans `.env` : sinon, si tous les véhicules étaient supprimés, un redémarrage rechargerait le catalogue d'origine.
 
-### Développement local (hors Docker)
+**Premier compte administrateur.** Sur http://localhost:8080/admin, tant qu'aucun utilisateur n'existe, Payload affiche « Créer le premier utilisateur » : saisir un e-mail et un mot de passe, valider, puis **se connecter** avec ce compte (la session n'est pas ouverte automatiquement). Dans l'administration, la rubrique **Agence** permet de renseigner adresse, téléphone, e-mail public et horaires : le pied de page n'affiche que ce qui est rempli. `SITE_URL` doit correspondre à l'adresse tapée dans le navigateur, sinon l'administration refuse les requêtes.
+
+**Au quotidien.**
 
 ```bash
+docker compose logs -f app        # journaux de l'application (démarrage, amorce, envois Telegram refusés)
+docker compose down               # arrête la pile ; la base est conservée
+docker compose down -v            # arrête ET supprime la base : repart de zéro (catalogue rechargé)
+docker compose up -d --build      # reconstruit et relance après un changement de code
+```
+
+### Développement local (hors Docker)
+
+Node.js **24** (version exigée par Payload, [ADR-0031](docs/adr/0031-node-24-pour-l-image-la-ci-et-le-developpement.md)) et Docker pour la base.
+
+```bash
+cp .env.example .env              # d'abord : le compose lit POSTGRES_PASSWORD dans ce fichier
+sed -i.bak "s/change-me-to-a-long-random-string/$(openssl rand -hex 32)/; s/change-me/$(openssl rand -hex 16)/g" .env && rm .env.bak
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db   # base seule, sur 127.0.0.1:5433
-cp .env.example .env              # DATABASE_URI pointe vers cette base
-npm install
+npm ci
 npm run migrate                   # applique les migrations (le schéma n'est jamais poussé automatiquement)
 npm run seed                      # charge sujet/vehicles.json — idempotent, ne modifie pas le fichier (hors Docker, pas d'amorce automatique)
 npm run dev                       # http://localhost:3000 — admin : /admin
 ```
+
+Le mot de passe de `DATABASE_URI` doit être celui de `POSTGRES_PASSWORD` : la commande `sed` ci-dessus met le même aux deux endroits. Pour lancer les tests de bout en bout, installer une fois les navigateurs : `npx playwright install chromium`.
 
 ### Commandes
 
@@ -86,7 +114,22 @@ npm run dev                       # http://localhost:3000 — admin : /admin
 | `npm run test:e2e` | tests Playwright (base migrée et seedée requise ; l'app est construite et lancée automatiquement avec un faux serveur Telegram) |
 | `npm run build` · `npm start` | build de production · serveur standalone |
 | `npm run migrate` · `migrate:status` · `migrate:create -- <nom>` | migrations (voir [ADR-0015](docs/adr/0015-versionnement-des-migrations-de-base-de-donnees.md)) |
-| `npm run generate:types` | régénère `src/payload-types.ts` |
+| `npm run migrate:down` | annule la dernière migration |
+| `npm run generate:types` · `npm run generate:importmap` | régénère `src/payload-types.ts` · la table des composants de l'administration |
+| `npx playwright install chromium` | une fois, avant le premier `npm run test:e2e` |
+
+### En cas de problème
+
+| Symptôme | Cause probable et remède |
+|---|---|
+| `required variable POSTGRES_PASSWORD is missing` | `.env` absent : `cp .env.example .env` avant toute commande `docker compose` |
+| `password authentication failed` (migrate, seed, dev) | `DATABASE_URI` et `POSTGRES_PASSWORD` n'ont pas le même mot de passe (voir la commande `sed`) |
+| Rien ne répond sur http://localhost:8080 | Port occupé ou autre : changer `HTTP_PORT` **et** `SITE_URL`, puis `docker compose up -d` ; l'application seule écoute sur le 3000 en développement |
+| L'administration refuse la connexion ou renvoie des erreurs | `SITE_URL` ne correspond pas à l'adresse tapée dans le navigateur |
+| Le formulaire répond « n'a pas pu être envoyé » | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` absents ou faux : `docker compose logs app` affiche la ligne `[telegram]` avec le code de Telegram (jamais le token) |
+| Erreur 429 sur un formulaire ou en rechargeant vite | Limite de débit nginx (anti-spam) : attendre une minute |
+| Avertissement `EBADENGINE` à `npm ci` | Node trop ancien : installer Node 24 |
+| `npm run test:e2e` : navigateur introuvable | `npx playwright install chromium` |
 
 ---
 
@@ -117,6 +160,8 @@ npm run dev                       # http://localhost:3000 — admin : /admin
 src/
   app/(frontend)/        pages du site (accueil, catalogue, contact, réservation) et routes API des formulaires
   app/(payload)/         administration et API REST de Payload
+  app/fonts/             polices hébergées (Newsreader, Inter) et leurs licences
+  proxy.ts               politique de sécurité de contenu (CSP) à nonce par requête
   collections/           Vehicles, Users          globals/  Agency
   components/            cartes véhicule, en-tête/pied, animation GSAP, formulaires (components/forms)
   lib/vehicles/          lecture de vehicles.json (validée), requêtes Payload, présentation (conditions, disponibilité)
@@ -126,7 +171,10 @@ src/
 scripts/seed.ts          import idempotent de sujet/vehicles.json
 e2e/                     tests Playwright + faux serveur Telegram
 docker/nginx/            configuration nginx
-docs/adr/, docs/conversations/
+public/images/           photos des véhicules et du hero (crédits sur /credits-photos)
+docs/adr/                décisions (index dans docs/adr/README.md)
+docs/conversations/      journal des échanges avec l'IA
+docs/securite.md, docs/accessibilite.md    audits
 ```
 
 Principes : composants serveur par défaut (seuls les formulaires et l'animation sont des composants clients) ; la logique métier est en fonctions pures testées (`lib/`) ; pas de `any`, les données externes (JSON, réponse Telegram, formulaires) sont validées à l'exécution.
@@ -248,7 +296,7 @@ L'audit complet (méthode, constats corrigés, sondes sur la pile Docker, **risq
 | Fuseau horaire | `Europe/Paris` pour « aujourd'hui » |
 | Langue | Site en français ; code et commits en anglais ; documentation en français |
 | Informations d'agence absentes | Aucune adresse, téléphone ni horaire inventés |
-| Que faire si Telegram échoue | Le visiteur est averti et invité à réessayer ou à téléphoner ; jamais de faux succès |
+| Que faire si Telegram échoue | Le visiteur est averti et invité à réessayer dans quelques minutes ; jamais de faux succès |
 | Bonus choisis | Tests automatisés, anti-spam, filtres et tri du catalogue, page détail par véhicule, plus l'idée personnelle (édition du catalogue par le client). Le déploiement en ligne n'a pas été réalisé |
 
 ---
@@ -261,7 +309,8 @@ L'audit complet (méthode, constats corrigés, sondes sur la pile Docker, **risq
 - **Anti-spam de niveau modéré** : un robot qui ignore le honeypot et reste sous la limite nginx peut passer. À renforcer (captcha respectueux de la vie privée) si du spam apparaît.
 - **Telegram : testé en réel par le candidat seulement** (un bot, une conversation privée, envois de contact et de réservation reçus). Les tests automatiques de l'agent n'appellent jamais la vraie API : tests unitaires et faux serveur conforme à la documentation. Pas de test de charge ni de cas d'échec réel (token révoqué, Telegram indisponible) en conditions réelles.
 - **Vulnérabilités de dépendances** : `npm audit --omit=dev` signale 8 alertes (3 élevées, 5 modérées) après correction de la critique (`dompurify`, forcé à la version corrigée par un `override`). Elles sont **transitives via Payload** : l'éditeur riche Lexical (`happy-dom`, côté administration) et des outils de développement (`esbuild`, `drizzle-kit`). Elles ne concernent pas les pages publiques ; la correction passe par une mise à jour de Payload.
-- **Pas de CSP ni de HSTS** ; TLS non géré localement.
+- **Pas de HTTPS ni de HSTS** : TLS n'est pas géré localement (la CSP, elle, est en place, [ADR-0028](docs/adr/0028-audit-de-securite-et-durcissement.md)).
+- **La CI ne lance pas l'image Docker** : elle la construit, et exécute lint, types, tests unitaires, migrations et E2E sur la machine de la CI ; un écart entre cette machine et le conteneur reste possible (vérifié à la main pour Node 24, [ADR-0031](docs/adr/0031-node-24-pour-l-image-la-ci-et-le-developpement.md)).
 - **Migrations concurrentes** : avec plusieurs instances démarrant en même temps, les migrations pourraient s'exécuter simultanément (une seule instance aujourd'hui).
 - **Accessibilité : auditée par outil, pas par des personnes** : 10 défauts corrigés et testés en CI ([`docs/accessibilite.md`](docs/accessibilite.md)), mais aucun test avec un lecteur d'écran ni avec de vrais utilisateurs, un seul navigateur automatisé, `/admin` (Payload) non audité. Les outils automatiques ne détectent qu'une partie des problèmes : aucune conformité n'est revendiquée.
 - **Amorce automatique** : tant que `AUTO_SEED=true`, une collection vidée puis un redémarrage rechargent le catalogue d'origine ; deux instances démarrant en même temps pourraient l'exécuter deux fois (sans doublon, le seed est idempotent).
@@ -273,5 +322,5 @@ L'audit complet (méthode, constats corrigés, sondes sur la pile Docker, **risq
 2. Remplacer les photos libres de Commons par celles de l'agence et renseigner ses coordonnées dans `/admin` (le pied de page s'adapte).
 3. Stocker les demandes (table Payload) pour ne rien perdre et permettre un suivi — en discuter avec le client, car cela réintroduit un back-office.
 4. Gérer les photos via la médiathèque Payload plutôt que par des fichiers dans `public/`.
-5. Tests d'accessibilité avec un lecteur d'écran et de vrais utilisateurs ; CSP, renforcement anti-spam.
+5. Tests d'accessibilité avec un lecteur d'écran et de vrais utilisateurs ; renforcement anti-spam (captcha respectueux de la vie privée).
 6. Mise en cache des pages catalogue avec invalidation depuis Payload.
