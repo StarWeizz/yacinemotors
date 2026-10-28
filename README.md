@@ -116,6 +116,7 @@ Le mot de passe de `DATABASE_URI` doit être celui de `POSTGRES_PASSWORD` : la c
 | `npm run migrate` · `migrate:status` · `migrate:create -- <nom>` | migrations (voir [ADR-0015](docs/adr/0015-versionnement-des-migrations-de-base-de-donnees.md)) |
 | `npm run migrate:down` | annule la dernière migration |
 | `npm run generate:types` · `npm run generate:importmap` | régénère `src/payload-types.ts` · la table des composants de l'administration |
+| `npm run adr:index` | régénère l'index des décisions `docs/adr/README.md` |
 | `npx playwright install chromium` | une fois, avant le premier `npm run test:e2e` |
 
 ### En cas de problème
@@ -129,7 +130,8 @@ Le mot de passe de `DATABASE_URI` doit être celui de `POSTGRES_PASSWORD` : la c
 | Le formulaire répond « n'a pas pu être envoyé » | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` absents ou faux : `docker compose logs app` affiche la ligne `[telegram]` avec le code de Telegram (jamais le token) |
 | Erreur 429 sur un formulaire ou en rechargeant vite | Limite de débit nginx (anti-spam) : attendre une minute |
 | Avertissement `EBADENGINE` à `npm ci` | Node trop ancien : installer Node 24 |
-| `npm run test:e2e` : navigateur introuvable | `npx playwright install chromium` |
+| `npm run test:e2e` : navigateur introuvable | `npm run adr:index` | régénère l'index des décisions `docs/adr/README.md` |
+| `npx playwright install chromium` |
 
 ---
 
